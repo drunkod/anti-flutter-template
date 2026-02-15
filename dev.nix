@@ -1,40 +1,47 @@
-# To learn more about how to use Nix to configure your environment
-# see: https://developers.google.com/idx/guides/customize-idx-env
+# Antigravity + Flutter workspace config — copied into generated projects.
+# Dart-only: no firebase-tools, JDK, or Android emulator.
+# See: https://developers.google.com/idx/guides/customize-idx-env
 { pkgs, ... }: {
-  # Which nixpkgs channel to use.
-  channel = "stable-25.05"; # or "unstable"
-  # Use https://search.nixos.org/packages to find packages
+  channel = "unstable";
+
   packages = [
-    pkgs.nodePackages.firebase-tools
-    pkgs.jdk
+    # Antigravity VNC infrastructure
+    pkgs.tigervnc
+    pkgs.fluxbox
+    pkgs.python312Packages.websockify
+    pkgs.novnc
+    pkgs.antigravity
+
+    # Utilities (no firebase-tools, no JDK)
     pkgs.unzip
   ];
-  # Sets environment variables in the workspace
-  env = {
-    PATH = ["/home/user/.pub-cache/bin"  "/home/user/flutter/bin" "./.flutter-sdk/flutter/bin"];
-  };
+
+  env = {};
+
   idx = {
-    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
       "Dart-Code.flutter"
       "Dart-Code.dart-code"
+      "google.gemini-cli-vscode-ide-companion"
     ];
+
     workspace = {
-      # Runs when a workspace is first created with this `dev.nix` file
       onCreate = {
-        installDependencies = "flutter pub get";
+        default.openFiles = [ ".idx/dev.nix" "README.md" ];
       };
+      onStart = {};
     };
-    # Enable previews and customize configuration
+
     previews = {
       enable = true;
       previews = {
         web = {
-          command = ["flutter" "run" "--machine" "-d" "web-server" "--web-hostname" "0.0.0.0" "--web-port" "$PORT"];
-          manager = "flutter";
-        };
-        android = {
-          command = ["flutter" "run" "--machine" "-d" "android" "-d" "emulator-5554"];
+          command = [
+            "flutter" "run" "--machine"
+            "-d" "web-server"
+            "--web-hostname" "0.0.0.0"
+            "--web-port" "$PORT"
+          ];
           manager = "flutter";
         };
       };

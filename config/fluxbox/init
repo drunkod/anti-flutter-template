@@ -1,0 +1,9 @@
+session.screen0.toolbar.visible: true
+session.screen0.toolbar.placement: BottomCenter
+session.screen0.toolbar.widthPercent: 100
+session.screen0.toolbar.height: 24
+session.screen0.workspaces: 4
+session.menuFile: ~/.fluxbox/menu
+session.keyFile: ~/.fluxbox/keys
+session.screen0.defaultDeco: NORMAL
+session.screen0.toolbar.tools: prevworkspace, workspacename, nextworkspace, clock, prevwindow, nextwindow, iconbar, systemtray

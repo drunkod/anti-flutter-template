@@ -1,0 +1,17 @@
+[begin] (Antigravity)
+  [exec] (Terminal) {{{TERMINAL_BIN}} -e {{SHELL_BIN}}}
+  [exec] (Browser) {{{BROWSER_CMD}}}
+  [separator]
+  [submenu] (VPN)
+    [exec] (VPN Status) {{{TERMINAL_BIN}} -e bash -c "curl -s --proxy socks5h://127.0.0.1:{{SOCKS_PORT}} https://ifconfig.me; echo; read -p 'Press Enter...'"}
+    [exec] (VPN Log) {{{TERMINAL_BIN}} -e tail -f {{VPN_LOG_FILE}}}
+  [end]
+  [submenu] (Logs)
+    [exec] (App Log) {{{TERMINAL_BIN}} -e tail -f {{LOG_FILE}}}
+    [exec] (VPN Log) {{{TERMINAL_BIN}} -e tail -f {{VPN_LOG_FILE}}}
+  [end]
+  [separator]
+  [exec] (Status) {{{TERMINAL_BIN}} -e bash -c "{{SCRIPT_DIR}}/status-vnc.sh; read -p 'Press Enter...'"}
+  [separator]
+  [exit] (Exit)
+[end]

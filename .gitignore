@@ -1,0 +1,9 @@
+# Generated files
+scripts/assets/samples.json
+
+# VPN configs (contain secrets)
+v2ray-client.json
+v2ray-client-reality.json
+
+# Nix build output
+result

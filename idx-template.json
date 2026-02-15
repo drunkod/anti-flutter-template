@@ -5,7 +5,7 @@
   "icon": "https://www.gstatic.com/images/branding/productlogos/flutter/v6/192px.svg",
   "publisher": "Rody Davis",
   "host": {
-    "virtualization": "true"
+    "virtualization": true
   },
   "params": [
     {
@@ -952,7 +952,7 @@
     },
     {
       "id": "blank",
-      "name": "Skip comments",
+      "name": "Empty",
       "type": "boolean",
       "default": "false"
     },
@@ -960,7 +960,7 @@
       "id": "platforms",
       "name": "Platforms",
       "type": "text",
-      "default": "web,android"
+      "default": "web"
     }
   ]
 }

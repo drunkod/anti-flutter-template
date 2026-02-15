@@ -4,7 +4,11 @@ import 'dart:io';
 void main(List<String> args) async {
   final samples = File('./scripts/assets/samples.json');
 
-  if (!samples.existsSync()) exit(1);
+  if (!samples.existsSync()) {
+    stderr.writeln('Error: scripts/assets/samples.json not found.');
+    stderr.writeln('Run: flutter create --list-samples=scripts/assets/samples.json');
+    exit(1);
+  }
 
   final str = await samples.readAsString();
   final items = (jsonDecode(str) as List).cast<Map<String, dynamic>>();
@@ -12,7 +16,9 @@ void main(List<String> args) async {
   final template = File('./idx-template.json');
   const encoder = JsonEncoder.withIndent(' ');
   final json = encoder.convert(createTemplate(items));
-  await template.writeAsString(json);
+  await template.writeAsString('$json\n');
+
+  stdout.writeln('✅ idx-template.json updated with ${items.length} samples.');
 }
 
 Map<String, Object?> createTemplate(List<Map<String, dynamic>> samples) {
@@ -21,7 +27,7 @@ Map<String, Object?> createTemplate(List<Map<String, dynamic>> samples) {
     "description": "Flutter create template",
     "categories": ["Mobile"],
     "icon":
-        "https://storage.googleapis.com/cms-storage-bucket/4fd5520fe28ebf839174.svg",
+        "https://www.gstatic.com/images/branding/productlogos/flutter/v6/192px.svg",
     "publisher": "Rody Davis",
     "host": {"virtualization": true},
     "params": [
@@ -67,23 +73,20 @@ Map<String, Object?> createTemplate(List<Map<String, dynamic>> samples) {
         "id": "platforms",
         "name": "Platforms",
         "type": "text",
-        "default": "web,android",
+        "default": "web",
       },
-      // {
-      //   "id": "org",
-      //   "name": "Organization",
-      //   "type": "text",
-      // },
-      // {
-      //   "id": "project-name",
-      //   "name": "Project Name",
-      //   "type": "text",
-      // },
-      // {
-      //   "id": "project-description",
-      //   "name": "Project Description",
-      //   "type": "text",
-      // },
+      {
+        "id": "org",
+        "name": "Organization",
+        "type": "text",
+        "default": "com.example",
+      },
+      {
+        "id": "project-name",
+        "name": "Project Name",
+        "type": "text",
+        "default": "my_app",
+      },
     ],
   };
 }
