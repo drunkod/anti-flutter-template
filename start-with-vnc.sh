@@ -106,6 +106,15 @@ else
 fi
 
 setup_fluxbox
+
+echo ""
+echo "🔍 DEBUG: Rendered fluxbox menu:"
+cat "$HOME/.fluxbox/menu" 2>/dev/null || echo "   MISSING!"
+echo ""
+echo "🔍 DEBUG: Rendered fluxbox keys:"
+cat "$HOME/.fluxbox/keys" 2>/dev/null || echo "   MISSING!"
+echo ""
+
 start_vnc_server
 
 echo ""
@@ -152,3 +161,9 @@ if [ "$VPN_ENABLED" = true ]; then
     echo "   Force-proxy an app: proxychains4 -f $PROXYCHAINS_CONF <cmd>"
 fi
 echo ""
+
+# Stay alive — IDX expects the preview command to be a long-running process.
+# When this process exits, IDX restarts the preview → infinite loop.
+# Wait on websockify (the noVNC proxy) which is the actual web server.
+echo "🔄 Keeping alive (waiting on websockify PID $WEBSOCKIFY_PID)..."
+wait "$WEBSOCKIFY_PID" 2>/dev/null || true

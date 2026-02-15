@@ -165,7 +165,7 @@ render_template() {
     for kv in "$@"; do
         key="${kv%%=*}"
         value="${kv#*=}"
-        escaped="$(printf '%s' "$value" | sed 's/[\\/&]/\\\\&/g')"
+        escaped="$(printf '%s' "$value" | sed 's/[\\&]/\\&/g')"
         sed_args+=("-e" "s|{{${key}}}|${escaped}|g")
     done
 

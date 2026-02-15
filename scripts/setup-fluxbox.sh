@@ -36,6 +36,8 @@ setup_fluxbox() {
         "BROWSER_CMD=$BROWSER_CMD"
 
     cp "$SCRIPT_DIR/config/fluxbox/init" "$HOME/.fluxbox/init"
+    cp "$SCRIPT_DIR/config/fluxbox/startup" "$HOME/.fluxbox/startup"
+    chmod +x "$HOME/.fluxbox/startup"
     cp "$SCRIPT_DIR/config/Xresources" "$HOME/.Xresources"
 
     render_template \

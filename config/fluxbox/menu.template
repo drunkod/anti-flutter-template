@@ -1,17 +1,38 @@
-[begin] (Antigravity)
-  [exec] (Terminal) {xterm}
-  [exec] (Browser) {{{BROWSER_CMD}} about:blank}
-  [separator]
+[begin] (Antigravity Desktop)
+  [submenu] (Terminal)
+    [exec] (XTerm) {xterm -fa "DejaVu Sans Mono" -fs 11}
+    [exec] (XTerm Dark) {xterm -bg black -fg white -fa "DejaVu Sans Mono" -fs 11}
+    [exec] (XTerm Large) {xterm -bg black -fg green -fa "DejaVu Sans Mono" -fs 14}
+    [exec] (Bash Login) {xterm -e bash --login}
+  [end]
+  [submenu] (Web Browser)
+    [exec] (Chromium) {{{BROWSER_CMD}}}
+    [exec] (Chromium — google.com) {{{BROWSER_CMD}} https://www.google.com}
+    [exec] (Chromium — check IP) {{{BROWSER_CMD}} https://ifconfig.me}
+  [end]
+  [submenu] (Tools)
+    [exec] (File Listing) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'ls -la ~; echo "---"; read -rp "Press Enter..."'}
+    [exec] (Disk Usage) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'df -h; echo "---"; read -rp "Press Enter..."'}
+    [exec] (Processes) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'ps aux; echo "---"; read -rp "Press Enter..."'}
+    [exec] (Network Info) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'echo "Hostname: $(hostname)"; echo; ip addr 2>/dev/null || ifconfig 2>/dev/null; echo "---"; read -rp "Press Enter..."'}
+  [end]
   [submenu] (VPN)
-    [exec] (VPN Status) {xterm -e bash -c "curl -s --proxy socks5h://127.0.0.1:{{SOCKS_PORT}} https://ifconfig.me; echo; read -p 'Press Enter...'"}
-    [exec] (VPN Log) {xterm -e tail -f {{VPN_LOG_FILE}}}
-  [end]
-  [submenu] (Logs)
-    [exec] (App Log) {xterm -e tail -f {{LOG_FILE}}}
-    [exec] (VPN Log) {xterm -e tail -f {{VPN_LOG_FILE}}}
+    [exec] (VPN Status) {xterm -fa "DejaVu Sans Mono" -fs 11 -hold -e bash -lc 'cd {{SCRIPT_DIR}} && bash status-vnc.sh'}
+    [exec] (Check VPN IP) {xterm -fa "DejaVu Sans Mono" -fs 11 -hold -e bash -lc 'echo "=== VPN IP ==="; curl -s --connect-timeout 5 --proxy socks5h://127.0.0.1:{{SOCKS_PORT}} https://ifconfig.me 2>/dev/null || echo FAILED; echo; echo "=== Direct IP ==="; env -u http_proxy -u https_proxy -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY curl -s --connect-timeout 5 https://ifconfig.me 2>/dev/null || echo FAILED; echo'}
+    [exec] (VPN Log) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'tail -50f {{VPN_LOG_FILE}}'}
+    [exec] (App Log) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'tail -50f {{LOG_FILE}}'}
   [end]
   [separator]
-  [exec] (Status) {xterm -e bash -c "{{SCRIPT_DIR}}/status-vnc.sh; read -p 'Press Enter...'"}
+  [submenu] (Fluxbox)
+    [workspaces] (Workspaces)
+    [submenu] (Styles)
+      [stylesdir] (/usr/share/fluxbox/styles)
+      [stylesdir] (~/.fluxbox/styles)
+    [end]
+    [config] (Configure)
+    [reconfig] (Reconfigure)
+    [restart] (Restart Fluxbox)
+  [end]
   [separator]
-  [exit] (Exit)
+  [exit] (Exit Fluxbox)
 [end]

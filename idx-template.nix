@@ -61,6 +61,7 @@
     install -m 644 ${./config/fluxbox/menu.template} "$out"/config/fluxbox/menu.template
     install -m 644 ${./config/fluxbox/keys.template} "$out"/config/fluxbox/keys.template
     install -m 644 ${./config/fluxbox/init} "$out"/config/fluxbox/init
+    install -m 755 ${./config/fluxbox/startup} "$out"/config/fluxbox/startup
 
     # 7. Wrappers
     mkdir -p "$out"/wrappers

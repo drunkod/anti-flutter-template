@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Fluxbox startup script — runs when fluxbox starts
+
+# Set background color
+xsetroot -solid "#2d2d2d" 2>/dev/null || true
+
+# Auto-launch xterm so the user has a terminal
+xterm -geometry 100x30+50+50 &
+
+exec fluxbox
