@@ -37,12 +37,13 @@
       previews = {
         web = {
           command = [
-            "flutter" "run" "--machine"
-            "-d" "web-server"
-            "--web-hostname" "0.0.0.0"
-            "--web-port" "$PORT"
+            "bash" "-c"
+            "NOVNC_PORT=$PORT ./start-with-vnc.sh"
           ];
-          manager = "flutter";
+          manager = "web";
+          env = {
+            PORT = "$PORT";
+          };
         };
       };
     };
