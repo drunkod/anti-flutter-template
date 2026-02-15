@@ -1,7 +1,7 @@
-Mod1 F1 :ExecCommand {{TERMINAL_BIN}}
-Mod1 F2 :ExecCommand {{BROWSER_CMD}}
-Control Mod1 t :ExecCommand {{TERMINAL_BIN}}
-Control Mod1 b :ExecCommand {{BROWSER_CMD}}
+Mod1 F1 :ExecCommand xterm
+Mod1 F2 :ExecCommand {{BROWSER_CMD}} about:blank
+Control Mod1 t :ExecCommand xterm
+Control Mod1 b :ExecCommand {{BROWSER_CMD}} about:blank
 Control Mod1 Delete :Exit
 Mod1 F4 :Close
 Mod1 Tab :NextWindow {groups} (workspace=[current])
