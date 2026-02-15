@@ -12,6 +12,26 @@
     pkgs.novnc
     pkgs.antigravity
 
+    # Desktop environment
+    pkgs.dbus
+    pkgs.xterm
+    pkgs.xdotool
+    pkgs.xorg.xrdb
+    pkgs.psmisc
+
+    # Fonts
+    pkgs.fontconfig
+    pkgs.dejavu_fonts
+    pkgs.liberation_ttf
+    pkgs.noto-fonts
+
+    # VPN / networking
+    pkgs.xray
+    pkgs.proxychains-ng
+    pkgs.curl
+    pkgs.wget
+    pkgs.git
+
     # Utilities (no firebase-tools, no JDK)
     pkgs.unzip
   ];

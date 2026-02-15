@@ -13,8 +13,9 @@ source "$SCRIPT_DIR/lib.sh"
 setup_fonts() {
     echo "🛠️  Configuring fonts..."
 
-    export FONTCONFIG_FILE
-    FONTCONFIG_FILE="$(nix-build --no-out-link -E '
+    # Try nix-build approach first (works in devShells)
+    if command -v nix-build >/dev/null 2>&1; then
+        FONTCONFIG_FILE="$(nix-build --no-out-link -E '
 with import <nixpkgs> {};
 let
   userFontsDir = builtins.getEnv "HOME" + "/.local/share/fonts";
@@ -25,12 +26,31 @@ makeFontsConf {
     liberation_ttf
     noto-fonts
   ] ++ (if builtins.pathExists userFontsDir then [ userFontsDir ] else []);
-}')"
+}' 2>/dev/null || true)"
 
-    if [ ! -f "$FONTCONFIG_FILE" ]; then
-        log_error "Failed to create FONTCONFIG_FILE"
-        return 1
+        if [ -n "$FONTCONFIG_FILE" ] && [ -f "$FONTCONFIG_FILE" ]; then
+            export FONTCONFIG_FILE
+            echo "   ✅ Fonts configured via nix-build"
+            return 0
+        fi
     fi
+
+    # Fallback: create a simple fonts.conf using packages from dev.nix
+    local fonts_conf="$HOME/.config/fontconfig/fonts.conf"
+    mkdir -p "$(dirname "$fonts_conf")"
+
+    cat > "$fonts_conf" <<'EOF'
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
+<fontconfig>
+  <dir>/nix/var/nix/profiles/default/share/fonts</dir>
+  <dir>~/.local/share/fonts</dir>
+  <dir>~/.nix-profile/share/fonts</dir>
+</fontconfig>
+EOF
+
+    export FONTCONFIG_FILE="$fonts_conf"
+    echo "   ✅ Fonts configured via fallback fonts.conf"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
