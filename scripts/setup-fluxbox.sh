@@ -15,11 +15,31 @@ setup_fluxbox() {
 
     mkdir -p "$HOME/.fluxbox"
 
-    TERMINAL_BIN="$(command -v xterm 2>/dev/null || echo "xterm")"
+    TERMINAL_BIN="$(
+        command -v xterm 2>/dev/null ||
+        command -v x-terminal-emulator 2>/dev/null ||
+        command -v uxterm 2>/dev/null ||
+        echo "xterm"
+    )"
     SHELL_BIN="$(command -v bash 2>/dev/null || command -v sh 2>/dev/null || echo "/bin/sh")"
 
     # Debug log file for menu clicks
     DBGLOG="$HOME/.fluxbox-debug.log"
+
+    # Ensure browser command exists before the Antigravity build creates its symlink.
+    mkdir -p "$(dirname "$BROWSER_CMD")"
+    if [ ! -x "$BROWSER_CMD" ]; then
+        FALLBACK_BROWSER="$(
+            command -v google-chrome 2>/dev/null ||
+            command -v chromium 2>/dev/null ||
+            command -v chromium-browser 2>/dev/null ||
+            command -v xdg-open 2>/dev/null ||
+            true
+        )"
+        if [ -n "$FALLBACK_BROWSER" ] && [ -x "$FALLBACK_BROWSER" ]; then
+            ln -sf "$FALLBACK_BROWSER" "$BROWSER_CMD"
+        fi
+    fi
 
     # ── Menu (heredoc with debug logging) ──
     cat > "$HOME/.fluxbox/menu" <<MENUEOF

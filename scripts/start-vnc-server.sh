@@ -36,8 +36,18 @@ start_vnc_server() {
         DISPLAY=":$DISPLAY_NUM" xrdb -merge "$HOME/.Xresources" 2>/dev/null || true
     fi
 
+    local fluxbox_shell
+    fluxbox_shell="${SHELL:-}"
+    if [ -z "$fluxbox_shell" ] || [ ! -x "$fluxbox_shell" ]; then
+        fluxbox_shell="$(command -v bash 2>/dev/null || command -v sh 2>/dev/null || echo "/bin/sh")"
+    fi
+    if [ ! -x "$fluxbox_shell" ]; then
+        log_warn "Fluxbox shell is not executable: $fluxbox_shell"
+    fi
+    export SHELL="$fluxbox_shell"
+
     echo "🖥️  Starting Fluxbox..."
-    DISPLAY=":$DISPLAY_NUM" fluxbox 2>/dev/null &
+    DISPLAY=":$DISPLAY_NUM" SHELL="$fluxbox_shell" fluxbox 2>/dev/null &
     FLUXBOX_PID=$!
     sleep 2
 

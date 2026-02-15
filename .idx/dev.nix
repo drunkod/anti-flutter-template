@@ -7,6 +7,9 @@
   packages = [
     pkgs.tigervnc
     pkgs.fluxbox
+    pkgs.xterm
+    pkgs.dbus
+    pkgs.xorg.xrdb
     pkgs.python312Packages.websockify
     pkgs.novnc
     pkgs.antigravity

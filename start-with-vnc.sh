@@ -55,25 +55,21 @@ echo "   which Xvnc:   $(command -v Xvnc 2>/dev/null || echo 'NOT FOUND')"
 echo "   which websockify: $(command -v websockify 2>/dev/null || echo 'NOT FOUND')"
 echo "   which curl:   $(command -v curl 2>/dev/null || echo 'NOT FOUND')"
 echo "   /bin/sh:      $(ls -la /bin/sh 2>/dev/null || echo 'MISSING!')"
+echo "   SHELL:        ${SHELL:-<not set>}"
 echo ""
 
-# Fluxbox uses /bin/sh -c to execute menu commands.
-# In Nix-based environments (IDX), /bin/sh may not exist, causing all
-# menu items to silently fail. Create a symlink if missing.
-if [ ! -f /bin/sh ]; then
-    echo "⚠️  /bin/sh not found — creating symlink (needed by Fluxbox)"
-    BASH_BIN="$(command -v bash 2>/dev/null || true)"
-    if [ -n "$BASH_BIN" ]; then
-        mkdir -p /bin 2>/dev/null || sudo mkdir -p /bin 2>/dev/null || true
-        ln -sf "$BASH_BIN" /bin/sh 2>/dev/null || sudo ln -sf "$BASH_BIN" /bin/sh 2>/dev/null || true
-        if [ -f /bin/sh ]; then
-            echo "   ✅ Created /bin/sh -> $BASH_BIN"
-        else
-            echo "   ❌ Could not create /bin/sh — menu items will not work"
-        fi
+# Fluxbox executes menu and key "Exec" commands via shell.
+# In Nix/IDX environments, $SHELL can be unset or point to a missing binary.
+if [ -z "${SHELL:-}" ] || [ ! -x "${SHELL:-}" ]; then
+    SHELL_CANDIDATE="$(command -v bash 2>/dev/null || command -v sh 2>/dev/null || true)"
+    if [ -n "$SHELL_CANDIDATE" ] && [ -x "$SHELL_CANDIDATE" ]; then
+        export SHELL="$SHELL_CANDIDATE"
+        echo "✅ Fluxbox exec shell set to: $SHELL"
+    else
+        echo "⚠️  Could not find a valid shell binary; Fluxbox menu Exec entries may fail"
     fi
 else
-    echo "✅ /bin/sh exists: $(readlink -f /bin/sh 2>/dev/null || echo '/bin/sh')"
+    echo "✅ Fluxbox exec shell: $SHELL"
 fi
 
 echo "🧹 Checking for existing Antigravity instances..."
