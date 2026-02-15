@@ -46,6 +46,17 @@ start_vnc_server() {
         return 1
     fi
 
+    # Auto-launch an xterm so the user has a terminal immediately
+    echo "📟 Auto-launching XTerm..."
+    DISPLAY=":$DISPLAY_NUM" xterm -fa "DejaVu Sans Mono" -fs 11 -bg black -fg white -geometry 100x30+50+50 &
+    XTERM_PID=$!
+    sleep 1
+    if kill -0 "$XTERM_PID" 2>/dev/null; then
+        echo "   ✅ XTerm launched (PID $XTERM_PID)"
+    else
+        echo "   ⚠️  XTerm failed to launch"
+    fi
+
     echo "🌐 Starting noVNC proxy..."
     websockify --web="$HOME/noVNC" "$NOVNC_PORT" "localhost:$VNC_PORT" 2>&1 &
     WEBSOCKIFY_PID=$!

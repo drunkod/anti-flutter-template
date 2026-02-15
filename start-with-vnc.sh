@@ -54,7 +54,27 @@ echo "   which fluxbox: $(command -v fluxbox 2>/dev/null || echo 'NOT FOUND')"
 echo "   which Xvnc:   $(command -v Xvnc 2>/dev/null || echo 'NOT FOUND')"
 echo "   which websockify: $(command -v websockify 2>/dev/null || echo 'NOT FOUND')"
 echo "   which curl:   $(command -v curl 2>/dev/null || echo 'NOT FOUND')"
+echo "   /bin/sh:      $(ls -la /bin/sh 2>/dev/null || echo 'MISSING!')"
 echo ""
+
+# Fluxbox uses /bin/sh -c to execute menu commands.
+# In Nix-based environments (IDX), /bin/sh may not exist, causing all
+# menu items to silently fail. Create a symlink if missing.
+if [ ! -f /bin/sh ]; then
+    echo "⚠️  /bin/sh not found — creating symlink (needed by Fluxbox)"
+    BASH_BIN="$(command -v bash 2>/dev/null || true)"
+    if [ -n "$BASH_BIN" ]; then
+        mkdir -p /bin 2>/dev/null || sudo mkdir -p /bin 2>/dev/null || true
+        ln -sf "$BASH_BIN" /bin/sh 2>/dev/null || sudo ln -sf "$BASH_BIN" /bin/sh 2>/dev/null || true
+        if [ -f /bin/sh ]; then
+            echo "   ✅ Created /bin/sh -> $BASH_BIN"
+        else
+            echo "   ❌ Could not create /bin/sh — menu items will not work"
+        fi
+    fi
+else
+    echo "✅ /bin/sh exists: $(readlink -f /bin/sh 2>/dev/null || echo '/bin/sh')"
+fi
 
 echo "🧹 Checking for existing Antigravity instances..."
 kill_by_pattern "$APP_PATTERN" 1
