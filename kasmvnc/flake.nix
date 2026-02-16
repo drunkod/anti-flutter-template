@@ -235,6 +235,7 @@
                 --prefix PATH : "${pkgs.lib.makeBinPath [
                   pkgs.xorg.xauth
                   pkgs.xorg.xdpyinfo
+                  pkgs.xorg.xinit
                   pkgs.nettools
                   pkgs.coreutils
                   pkgs.gnugrep

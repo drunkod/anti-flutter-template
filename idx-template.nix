@@ -53,7 +53,6 @@
     install -m 755 ${./scripts/setup-fluxbox.sh} "$out"/scripts/setup-fluxbox.sh
     install -m 755 ${./scripts/start-vnc-server.sh} "$out"/scripts/start-vnc-server.sh
     install -m 755 ${./scripts/start-kasm-server.sh} "$out"/scripts/start-kasm-server.sh
-    install -m 755 ${./scripts/install-kasmvnc-release.sh} "$out"/scripts/install-kasmvnc-release.sh
     install -m 755 ${./scripts/build-app.sh} "$out"/scripts/build-app.sh
     install -m 755 ${./scripts/launch-app.sh} "$out"/scripts/launch-app.sh
 

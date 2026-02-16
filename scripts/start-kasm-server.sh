@@ -9,17 +9,63 @@ fi
 source "$SCRIPT_DIR/config.env"
 # shellcheck source=../lib.sh
 source "$SCRIPT_DIR/lib.sh"
-# shellcheck source=./install-kasmvnc-release.sh
-source "$SCRIPT_DIR/scripts/install-kasmvnc-release.sh"
 
-start_kasm_server() {
+kasmvnc_vncserver_compatible() {
     if ! command -v vncserver >/dev/null 2>&1; then
-        log_warn "vncserver not found. Trying GitHub release installer..."
-        install_kasmvnc_from_release || return 1
+        return 1
     fi
 
-    if ! command -v vncserver >/dev/null 2>&1; then
-        log_error "vncserver command still unavailable after install attempt"
+    local help_text
+    help_text="$(vncserver --help 2>&1 || true)"
+    printf '%s\n' "$help_text" | grep -Eqi 'kasmvnc|disableBasicAuth'
+}
+
+build_kasmvnc_from_local_flake() {
+    local flake_dir="${KASMVNC_LOCAL_FLAKE_DIR:-$SCRIPT_DIR/kasmvnc}"
+
+    if [ ! -f "$flake_dir/flake.nix" ]; then
+        log_warn "Local KasmVNC flake not found at $flake_dir"
+        return 1
+    fi
+
+    if ! command -v nix >/dev/null 2>&1; then
+        log_error "nix command is unavailable; cannot build local KasmVNC flake"
+        return 1
+    fi
+
+    log_info "Building KasmVNC from local flake: $flake_dir"
+    local out_path
+    if ! out_path="$(nix build --print-out-paths --no-link "path:${flake_dir}#default" | tail -n1)"; then
+        log_error "Local flake build failed"
+        return 1
+    fi
+
+    if [ -x "$out_path/bin/vncserver" ]; then
+        export PATH="$out_path/bin:$PATH"
+        log_success "Using local flake KasmVNC at $out_path"
+        return 0
+    fi
+
+    log_error "Local flake output does not contain bin/vncserver: $out_path"
+    return 1
+}
+
+ensure_kasmvnc_vncserver() {
+    if ! build_kasmvnc_from_local_flake; then
+        return 1
+    fi
+
+    if kasmvnc_vncserver_compatible; then
+        log_info "Using KasmVNC vncserver: $(command -v vncserver)"
+        return 0
+    fi
+
+    log_error "Built vncserver is not KasmVNC-compatible: $(command -v vncserver 2>/dev/null || echo missing)"
+    return 1
+}
+
+start_kasm_server() {
+    if ! ensure_kasmvnc_vncserver; then
         return 1
     fi
 
