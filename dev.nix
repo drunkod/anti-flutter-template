@@ -58,7 +58,7 @@
         web = {
           command = [
             "bash" "-c"
-            "NOVNC_PORT=$PORT ./start-with-vnc.sh"
+            "NOVNC_PORT=$PORT ./start-with-kasmvnc.sh"
           ];
           manager = "web";
           env = {

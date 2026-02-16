@@ -39,6 +39,7 @@
 
     # 4. Shell scripts
     install -m 755 ${./start-with-vnc.sh} "$out"/start-with-vnc.sh
+    install -m 755 ${./start-with-kasmvnc.sh} "$out"/start-with-kasmvnc.sh
     install -m 755 ${./start-vpn.sh} "$out"/start-vpn.sh
     install -m 755 ${./stop-vnc.sh} "$out"/stop-vnc.sh
     install -m 755 ${./stop-vpn.sh} "$out"/stop-vpn.sh
