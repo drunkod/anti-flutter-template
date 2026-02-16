@@ -27,8 +27,15 @@ export LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
   echo "$(date): [camoufox-2] Opening: $*"
 } >> "$log_file" 2>/dev/null || true
 
-exec @camoufoxBinary@ \
-  --no-remote \
-  --new-instance \
-  --profile "$profile_dir" \
+exec >> "$log_file" 2>&1
+
+# Use Firefox-compatible option spelling for maximum compatibility.
+@camoufoxBinary@ \
+  -no-remote \
+  -new-instance \
+  -profile "$profile_dir" \
   "$@"
+
+rc=$?
+echo "$(date): [camoufox-2] Exit code: $rc"
+exit "$rc"
