@@ -28,6 +28,10 @@ An [Antigravity](https://github.com/nicolo-ribaudo/antigravity) workspace with a
 │   └── update.dart               # Flutter template code-gen
 ├── wrappers/
 │   └── google-chrome.sh          # Chrome wrapper w/ proxy support
+├── camoufox/
+│   ├── browser-1.sh              # Camoufox wrapper (profile-1)
+│   ├── browser-2.sh              # Camoufox wrapper (profile-2)
+│   └── README.md                 # Notes for dual Camoufox launchers
 ├── config.env                    # Shared environment variables
 ├── lib.sh                        # Shared bash utilities
 ├── flake.nix                     # Nix build definition
@@ -72,3 +76,10 @@ just status   # Check service status
 just vpn      # Start VPN only
 just vpn-stop # Stop VPN only
 ```
+
+## Browser Launchers
+
+- `Ctrl+Alt+B` launches Chromium
+- `Ctrl+Alt+1` launches Camoufox profile 1
+- `Ctrl+Alt+2` launches Camoufox profile 2
+- Fluxbox menu includes Chromium + both Camoufox entries

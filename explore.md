@@ -33,7 +33,7 @@ anti-flutter-template/
 │
 ├── config.env                ← Shared config: ports, paths, PID files, VPN settings
 ├── lib.sh                    ← Shared utils: logging, process mgmt, proxy, render_template
-├── flake.nix                 ← Nix flake: wraps antigravity + chromium (proxy-aware)
+├── flake.nix                 ← Nix flake: wraps antigravity + chromium + camoufox
 ├── justfile                  ← Task runner: just start / stop / status
 │
 ├── start-with-vnc.sh         ← Main orchestrator (sources all scripts, runs sequence)
@@ -48,7 +48,7 @@ anti-flutter-template/
 │   ├── setup-gpu-env.sh      ← Disable GPU/Vulkan (software rendering)
 │   ├── setup-fluxbox.sh      ← Generate menu, keys, init via heredocs (not templates)
 │   ├── start-vnc-server.sh   ← Xvnc + Fluxbox + auto XTerm + websockify
-│   ├── build-app.sh          ← nix build + browser symlink setup
+│   ├── build-app.sh          ← nix build + chromium/camoufox symlink setup
 │   ├── launch-app.sh         ← DISPLAY=:99 ./result/bin/antigravity
 │   └── update.dart           ← Code-gen: regenerates idx-template.json from Flutter samples
 │
@@ -63,6 +63,10 @@ anti-flutter-template/
 │
 ├── wrappers/
 │   └── google-chrome.sh      ← Proxy-aware Chromium wrapper
+├── camoufox/
+│   ├── browser-1.sh          ← Camoufox launcher (profile-1)
+│   ├── browser-2.sh          ← Camoufox launcher (profile-2)
+│   └── README.md             ← Camoufox launcher notes
 │
 ├── v2ray-client.json.example         ← VMess + WebSocket VPN template
 ├── v2ray-client-reality.json.example ← VLESS + Reality VPN template
@@ -89,6 +93,8 @@ The main system. Launches a full VNC desktop accessible via noVNC in the browser
 | `SOCKS_PORT` | `10808` | Xray SOCKS5 proxy |
 | `HTTP_PORT` | `10809` | Xray HTTP proxy |
 | `BROWSER_CMD` | `~/.local/bin/browser` | Symlink to built Chromium |
+| `CAMOUFOX_BROWSER1_CMD` | `~/.local/bin/camoufox-browser-1` | Camoufox launcher (profile-1) |
+| `CAMOUFOX_BROWSER2_CMD` | `~/.local/bin/camoufox-browser-2` | Camoufox launcher (profile-2) |
 | `APP_PATTERN` | `bin/antigravity` | Process pattern for pkill/pgrep |
 
 All ports use `${VAR:-default}` so IDX can override them (e.g. `NOVNC_PORT=$PORT`).
@@ -101,11 +107,13 @@ All ports use `${VAR:-default}` so IDX can override them (e.g. `NOVNC_PORT=$PORT
 - `test_vpn_connection` — compare real vs VPN IP
 - `render_template` — sed-based `{{KEY}}` replacement (uses `|` delimiter)
 
-**Fluxbox config is generated at runtime** via bash heredocs in `setup-fluxbox.sh` (not from template files). This ensures proper variable expansion of `$TERMINAL_BIN`, `$BROWSER_CMD`, etc.
+**Fluxbox config is generated at runtime** via bash heredocs in `setup-fluxbox.sh` (not from template files). This ensures proper variable expansion of `$TERMINAL_BIN`, `$BROWSER_CMD`, `$CAMOUFOX_BROWSER1_CMD`, and `$CAMOUFOX_BROWSER2_CMD`.
 
 **`flake.nix` builds:**
 - Wraps `pkgs.antigravity` with a controlled PATH
 - Creates `google-chrome` wrapper that auto-detects VPN proxy (`$PROXY_SOCKS5`)
+- Packages Camoufox (`135.0.1-beta.24`) from upstream zip release
+- Installs `camoufox-browser-1` and `camoufox-browser-2` wrappers with isolated profiles
 - Creates `xdg-open` wrapper pointing to same Chromium
 - Disables GPU/Vulkan via env vars
 
@@ -135,7 +143,8 @@ idx-template.json → idx-template.nix → flutter create + copy all infra files
 4. `scripts/` directory (all 7 setup/launch scripts)
 5. `config/` directory (Xresources, fluxbox, proxychains)
 6. `wrappers/` directory
-7. VPN config examples
+7. `camoufox/` directory
+8. VPN config examples
 
 ### Two `dev.nix` Files
 
@@ -162,6 +171,11 @@ Two protocols supported:
 - **VLESS + Reality** (`v2ray-client-reality.json`)
 
 When active, all proxy env vars are exported and the Chromium wrapper auto-routes through SOCKS5.
+
+Fluxbox browser access now includes:
+- Chromium (`Ctrl+Alt+B`)
+- Camoufox profile 1 (`Ctrl+Alt+1`)
+- Camoufox profile 2 (`Ctrl+Alt+2`)
 
 ## Code-Gen
 

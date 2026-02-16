@@ -25,7 +25,7 @@ build_app() {
     fi
 
     echo "🌐 Setting up browser..."
-    mkdir -p "$HOME/.local/bin"
+    mkdir -p "$(dirname "$BROWSER_CMD")" "$(dirname "$CAMOUFOX_BROWSER1_CMD")" "$(dirname "$CAMOUFOX_BROWSER2_CMD")"
 
     local built_browser
     built_browser="$(readlink -f "$SCRIPT_DIR/result/bin/google-chrome" 2>/dev/null || true)"
@@ -37,6 +37,30 @@ build_app() {
         echo "   ✅ Version: $chromium_version"
     else
         echo "   ⚠️  Could not find built google-chrome at ./result/bin/google-chrome"
+    fi
+
+    local built_camoufox_1 built_camoufox_2
+    built_camoufox_1="$(readlink -f "$SCRIPT_DIR/result/bin/camoufox-browser-1" 2>/dev/null || true)"
+    built_camoufox_2="$(readlink -f "$SCRIPT_DIR/result/bin/camoufox-browser-2" 2>/dev/null || true)"
+
+    if [ -n "$built_camoufox_1" ] && [ -x "$built_camoufox_1" ]; then
+        ln -sf "$built_camoufox_1" "$CAMOUFOX_BROWSER1_CMD"
+        echo "   ✅ Camoufox #1: $CAMOUFOX_BROWSER1_CMD -> $built_camoufox_1"
+    else
+        echo "   ⚠️  Could not find built camoufox-browser-1 at ./result/bin/camoufox-browser-1"
+    fi
+
+    if [ -n "$built_camoufox_2" ] && [ -x "$built_camoufox_2" ]; then
+        ln -sf "$built_camoufox_2" "$CAMOUFOX_BROWSER2_CMD"
+        echo "   ✅ Camoufox #2: $CAMOUFOX_BROWSER2_CMD -> $built_camoufox_2"
+    else
+        echo "   ⚠️  Could not find built camoufox-browser-2 at ./result/bin/camoufox-browser-2"
+    fi
+
+    if [ -x "$SCRIPT_DIR/result/bin/camoufox" ]; then
+        local camoufox_version
+        camoufox_version="$("$SCRIPT_DIR/result/bin/camoufox" --version 2>/dev/null | head -1 || echo "unknown")"
+        echo "   ✅ Camoufox version: $camoufox_version"
     fi
 }
 

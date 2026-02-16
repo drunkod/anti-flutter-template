@@ -1,6 +1,8 @@
 # Keyboard shortcuts
 Control Mod1 T :Exec xterm -fa "DejaVu Sans Mono" -fs 11 -bg black -fg white
 Control Mod1 B :Exec {{BROWSER_CMD}}
+Control Mod1 1 :Exec {{CAMOUFOX_BROWSER1_CMD}}
+Control Mod1 2 :Exec {{CAMOUFOX_BROWSER2_CMD}}
 
 # Window management
 Mod1 Tab :NextWindow {groups} (workspace=[current])

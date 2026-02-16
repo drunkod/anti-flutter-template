@@ -71,11 +71,92 @@
         chromium = "${pkgs.chromium}/bin/chromium";
         inherit chromiumFlags;
       };
+
+      camoufoxVersion = "135.0.1-beta.24";
+
+      camoufoxPkg = pkgs.stdenv.mkDerivation rec {
+        pname = "camoufox";
+        version = camoufoxVersion;
+
+        src = pkgs.fetchzip {
+          url = "https://github.com/daijro/camoufox/releases/download/v${version}/camoufox-${version}-lin.x86_64.zip";
+          sha256 = "sha256-k5t12L5q0RG8Zun0SAjGthYQXUcf+xVHvk9Mknr97QY=";
+          stripRoot = false;
+        };
+
+        nativeBuildInputs = with pkgs; [
+          autoPatchelfHook
+          wrapGAppsHook3
+          lndir
+          jq
+          gtk3
+        ];
+
+        buildInputs = with pkgs; [
+          gtk3
+          glib
+          pango
+          cairo
+          gdk-pixbuf
+          atk
+          libxkbcommon
+          stdenv.cc.cc.lib
+          alsa-lib
+          gsettings-desktop-schemas
+          fontconfig
+          libglvnd
+          at-spi2-atk
+          dbus
+          librsvg
+          libx11
+          libxcomposite
+          libxdamage
+          libxfixes
+          libxrandr
+          libxrender
+          libxtst
+        ];
+
+        gappsWrapperArgs = [
+          "--prefix XDG_DATA_DIRS : ${pkgs.gsettings-desktop-schemas}/share"
+          "--prefix XDG_DATA_DIRS : ${pkgs.gtk3}/share"
+          "--prefix LD_LIBRARY_PATH : ${placeholder "out"}/lib/${pname}"
+        ];
+
+        installPhase = ''
+          runHook preInstall
+
+          mkdir -p $out/lib/${pname}
+          cp -r ./* $out/lib/${pname}/
+
+          mkdir -p $out/bin
+          ln -s $out/lib/${pname}/camoufox $out/bin/camoufox
+          ln -s $out/lib/${pname}/camoufox-bin $out/bin/camoufox-bin
+
+          runHook postInstall
+        '';
+
+        meta = with pkgs.lib; {
+          description = "A stealthy, minimalistic, custom build of Firefox for web scraping";
+          homepage = "https://github.com/daijro/camoufox";
+          license = licenses.mit;
+          platforms = platforms.linux;
+          mainProgram = "camoufox";
+        };
+      };
+
+      camoufoxBrowser1Wrapper = pkgs.replaceVars ./camoufox/browser-1.sh {
+        camoufoxBinary = "${camoufoxPkg}/bin/camoufox";
+      };
+
+      camoufoxBrowser2Wrapper = pkgs.replaceVars ./camoufox/browser-2.sh {
+        camoufoxBinary = "${camoufoxPkg}/bin/camoufox";
+      };
     in
     {
       packages.${system}.default = pkgs.symlinkJoin {
         name = "antigravity-wrapped";
-        paths = [ pkgs.antigravity ];
+        paths = [ pkgs.antigravity camoufoxPkg ];
         nativeBuildInputs = [ pkgs.makeWrapper ];
 
         postBuild = ''
@@ -91,6 +172,11 @@
           for name in google-chrome-stable chromium chromium-browser chrome; do
             ln -sf google-chrome $out/bin/$name
           done
+
+          install -m 755 ${camoufoxBrowser1Wrapper} $out/bin/camoufox-browser-1
+          install -m 755 ${camoufoxBrowser2Wrapper} $out/bin/camoufox-browser-2
+          ln -sf camoufox-browser-1 $out/bin/camoufox1
+          ln -sf camoufox-browser-2 $out/bin/camoufox2
 
           wrapProgram $out/bin/antigravity \
             --prefix PATH : "$out/bin:${fullPath}" \

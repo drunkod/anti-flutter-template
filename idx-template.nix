@@ -67,7 +67,13 @@
     mkdir -p "$out"/wrappers
     install -m 755 ${./wrappers/google-chrome.sh} "$out"/wrappers/google-chrome.sh
 
-    # 8. VPN config examples
+    # 8. Camoufox launchers
+    mkdir -p "$out"/camoufox
+    install -m 644 ${./camoufox/README.md} "$out"/camoufox/README.md
+    install -m 755 ${./camoufox/browser-1.sh} "$out"/camoufox/browser-1.sh
+    install -m 755 ${./camoufox/browser-2.sh} "$out"/camoufox/browser-2.sh
+
+    # 9. VPN config examples
     install -m 644 ${./v2ray-client.json.example} "$out"/v2ray-client.json.example
     install -m 644 ${./v2ray-client-reality.json.example} "$out"/v2ray-client-reality.json.example
 

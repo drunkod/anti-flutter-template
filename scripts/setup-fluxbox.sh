@@ -23,23 +23,42 @@ setup_fluxbox() {
     )"
     SHELL_BIN="$(command -v bash 2>/dev/null || command -v sh 2>/dev/null || echo "/bin/sh")"
 
+    ensure_launcher() {
+        local target="$1"
+        shift
+
+        mkdir -p "$(dirname "$target")"
+
+        if [ -x "$target" ]; then
+            return 0
+        fi
+
+        local candidate resolved
+        for candidate in "$@"; do
+            [ -n "$candidate" ] || continue
+
+            if [ -x "$candidate" ]; then
+                ln -sf "$candidate" "$target"
+                return 0
+            fi
+
+            resolved="$(command -v "$candidate" 2>/dev/null || true)"
+            if [ -n "$resolved" ] && [ -x "$resolved" ]; then
+                ln -sf "$resolved" "$target"
+                return 0
+            fi
+        done
+
+        return 1
+    }
+
     # Debug log file for menu clicks
     DBGLOG="$HOME/.fluxbox-debug.log"
 
-    # Ensure browser command exists before the Antigravity build creates its symlink.
-    mkdir -p "$(dirname "$BROWSER_CMD")"
-    if [ ! -x "$BROWSER_CMD" ]; then
-        FALLBACK_BROWSER="$(
-            command -v google-chrome 2>/dev/null ||
-            command -v chromium 2>/dev/null ||
-            command -v chromium-browser 2>/dev/null ||
-            command -v xdg-open 2>/dev/null ||
-            true
-        )"
-        if [ -n "$FALLBACK_BROWSER" ] && [ -x "$FALLBACK_BROWSER" ]; then
-            ln -sf "$FALLBACK_BROWSER" "$BROWSER_CMD"
-        fi
-    fi
+    # Ensure browser commands exist before the Antigravity build creates symlinks.
+    ensure_launcher "$BROWSER_CMD" google-chrome chromium chromium-browser xdg-open || true
+    ensure_launcher "$CAMOUFOX_BROWSER1_CMD" camoufox "$BROWSER_CMD" || true
+    ensure_launcher "$CAMOUFOX_BROWSER2_CMD" camoufox "$BROWSER_CMD" || true
 
     # ── Menu (heredoc with debug logging) ──
     cat > "$HOME/.fluxbox/menu" <<MENUEOF
@@ -54,6 +73,11 @@ setup_fluxbox() {
     [exec] (Chromium) {echo "\$(date): EXEC browser cmd=${BROWSER_CMD}" >> ${DBGLOG}; ls -la ${BROWSER_CMD} >> ${DBGLOG} 2>&1; ${BROWSER_CMD} 2>> ${DBGLOG}}
     [exec] (Chromium — google.com) {echo "\$(date): EXEC browser google" >> ${DBGLOG}; ${BROWSER_CMD} https://www.google.com 2>> ${DBGLOG}}
     [exec] (Chromium — check IP) {echo "\$(date): EXEC browser ifconfig" >> ${DBGLOG}; ${BROWSER_CMD} https://ifconfig.me 2>> ${DBGLOG}}
+    [separator]
+    [exec] (Camoufox #1) {echo "\$(date): EXEC camoufox-1 cmd=${CAMOUFOX_BROWSER1_CMD}" >> ${DBGLOG}; ls -la ${CAMOUFOX_BROWSER1_CMD} >> ${DBGLOG} 2>&1; ${CAMOUFOX_BROWSER1_CMD} 2>> ${DBGLOG}}
+    [exec] (Camoufox #1 — google.com) {echo "\$(date): EXEC camoufox-1 google" >> ${DBGLOG}; ${CAMOUFOX_BROWSER1_CMD} https://www.google.com 2>> ${DBGLOG}}
+    [exec] (Camoufox #2) {echo "\$(date): EXEC camoufox-2 cmd=${CAMOUFOX_BROWSER2_CMD}" >> ${DBGLOG}; ls -la ${CAMOUFOX_BROWSER2_CMD} >> ${DBGLOG} 2>&1; ${CAMOUFOX_BROWSER2_CMD} 2>> ${DBGLOG}}
+    [exec] (Camoufox #2 — check IP) {echo "\$(date): EXEC camoufox-2 ifconfig" >> ${DBGLOG}; ${CAMOUFOX_BROWSER2_CMD} https://ifconfig.me 2>> ${DBGLOG}}
   [end]
   [submenu] (Tools)
     [exec] (File Listing) {echo "\$(date): EXEC file-listing" >> ${DBGLOG}; ${TERMINAL_BIN} -fa "DejaVu Sans Mono" -fs 11 -e ${SHELL_BIN} -lc 'ls -la ~; echo "---"; read -rp "Press Enter..."' 2>> ${DBGLOG}}
@@ -88,6 +112,9 @@ MENUEOF
 Control Mod1 T :Exec ${TERMINAL_BIN} -fa "DejaVu Sans Mono" -fs 11 -bg black -fg white
 # Ctrl+Alt+B = browser
 Control Mod1 B :Exec ${BROWSER_CMD}
+# Ctrl+Alt+1 / Ctrl+Alt+2 = Camoufox profiles
+Control Mod1 1 :Exec ${CAMOUFOX_BROWSER1_CMD}
+Control Mod1 2 :Exec ${CAMOUFOX_BROWSER2_CMD}
 
 # Window management
 Mod1 Tab :NextWindow {groups} (workspace=[current])

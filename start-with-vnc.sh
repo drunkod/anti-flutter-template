@@ -44,6 +44,8 @@ echo "   VNC_PORT=$VNC_PORT"
 echo "   NOVNC_PORT=$NOVNC_PORT"
 echo "   PORT=${PORT:-<not set>}"
 echo "   BROWSER_CMD=$BROWSER_CMD"
+echo "   CAMOUFOX_BROWSER1_CMD=$CAMOUFOX_BROWSER1_CMD"
+echo "   CAMOUFOX_BROWSER2_CMD=$CAMOUFOX_BROWSER2_CMD"
 echo "   HOME=$HOME"
 echo "   PATH (first 200):  ${PATH:0:200}"
 echo "   which xterm:  $(command -v xterm 2>/dev/null || echo 'NOT FOUND')"
@@ -145,7 +147,7 @@ if [ "$VPN_ENABLED" = true ]; then
     echo "   SOCKS5: 127.0.0.1:$SOCKS_PORT | HTTP: 127.0.0.1:$HTTP_PORT"
 fi
 echo ""
-echo "🖥️  Right-click desktop -> menu | Ctrl+Alt+T -> terminal | Ctrl+Alt+B -> browser"
+echo "🖥️  Right-click desktop -> menu | Ctrl+Alt+T -> terminal | Ctrl+Alt+B -> Chromium | Ctrl+Alt+1/2 -> Camoufox"
 echo "============================================"
 echo ""
 
