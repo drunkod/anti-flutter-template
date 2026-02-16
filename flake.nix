@@ -3,9 +3,14 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    kasmvnc = {
+      url = "path:./kasmvnc";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, kasmvnc }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs {
@@ -73,44 +78,54 @@
       };
     in
     {
-      packages.${system}.default = pkgs.symlinkJoin {
-        name = "antigravity-wrapped";
-        paths = [ pkgs.antigravity ];
-        nativeBuildInputs = [ pkgs.makeWrapper ];
+      packages.${system} =
+        let
+          antigravityWrapped = pkgs.symlinkJoin {
+            name = "antigravity-wrapped";
+            paths = [ pkgs.antigravity ];
+            nativeBuildInputs = [ pkgs.makeWrapper ];
 
-        postBuild = ''
-          mkdir -p $out/bin
+            postBuild = ''
+              mkdir -p $out/bin
 
-          ln -sf ${pkgs.bashInteractive}/bin/bash $out/bin/bash
-          ln -sf ${pkgs.bashInteractive}/bin/bash $out/bin/sh
-          ln -sf ${pkgs.git}/bin/git $out/bin/git
+              ln -sf ${pkgs.bashInteractive}/bin/bash $out/bin/bash
+              ln -sf ${pkgs.bashInteractive}/bin/bash $out/bin/sh
+              ln -sf ${pkgs.git}/bin/git $out/bin/git
 
-          install -m 755 ${googleChromeWrapper} $out/bin/google-chrome
-          ln -sf google-chrome $out/bin/xdg-open
+              install -m 755 ${googleChromeWrapper} $out/bin/google-chrome
+              ln -sf google-chrome $out/bin/xdg-open
 
-          for name in google-chrome-stable chromium chromium-browser chrome; do
-            ln -sf google-chrome $out/bin/$name
-          done
+              for name in google-chrome-stable chromium chromium-browser chrome; do
+                ln -sf google-chrome $out/bin/$name
+              done
 
-          wrapProgram $out/bin/antigravity \
-            --prefix PATH : "$out/bin:${fullPath}" \
-            --set-default SHELL "$out/bin/bash" \
-            --set-default CHROME_PATH "$out/bin/google-chrome" \
-            --set-default CHROME_EXECUTABLE "$out/bin/google-chrome" \
-            --set-default CHROME_BIN "$out/bin/google-chrome" \
-            --set-default BROWSER "$out/bin/google-chrome" \
-            --set VK_ICD_FILENAMES "" \
-            --set LIBVA_DRIVER_NAME "null" \
-            --set MESA_LOADER_DRIVER_OVERRIDE "swrast" \
-            --set GALLIUM_DRIVER "llvmpipe" \
-            --unset XDG_CURRENT_DESKTOP \
-            --unset DESKTOP_SESSION
-        '';
+              wrapProgram $out/bin/antigravity \
+                --prefix PATH : "$out/bin:${fullPath}" \
+                --set-default SHELL "$out/bin/bash" \
+                --set-default CHROME_PATH "$out/bin/google-chrome" \
+                --set-default CHROME_EXECUTABLE "$out/bin/google-chrome" \
+                --set-default CHROME_BIN "$out/bin/google-chrome" \
+                --set-default BROWSER "$out/bin/google-chrome" \
+                --set VK_ICD_FILENAMES "" \
+                --set LIBVA_DRIVER_NAME "null" \
+                --set MESA_LOADER_DRIVER_OVERRIDE "swrast" \
+                --set GALLIUM_DRIVER "llvmpipe" \
+                --unset XDG_CURRENT_DESKTOP \
+                --unset DESKTOP_SESSION
+            '';
 
-        meta = pkgs.antigravity.meta // {
-          mainProgram = "antigravity";
+            meta = pkgs.antigravity.meta // {
+              mainProgram = "antigravity";
+            };
+          };
+        in
+        {
+          default = antigravityWrapped;
+
+          # Expose external local flake packages at the root level.
+          kasmvnc = kasmvnc.packages.${system}.kasmvnc;
+          kasmvnc-www = kasmvnc.packages.${system}.kasmvnc-www;
         };
-      };
 
       devShells.${system}.default = pkgs.mkShell {
         packages = terminalDeps ++ launcherDeps;
