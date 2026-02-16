@@ -51,10 +51,16 @@
     install -m 755 ${./scripts/setup-gpu-env.sh} "$out"/scripts/setup-gpu-env.sh
     install -m 755 ${./scripts/setup-fluxbox.sh} "$out"/scripts/setup-fluxbox.sh
     install -m 755 ${./scripts/start-vnc-server.sh} "$out"/scripts/start-vnc-server.sh
+    install -m 755 ${./scripts/start-kasm-server.sh} "$out"/scripts/start-kasm-server.sh
+    install -m 755 ${./scripts/install-kasmvnc-release.sh} "$out"/scripts/install-kasmvnc-release.sh
     install -m 755 ${./scripts/build-app.sh} "$out"/scripts/build-app.sh
     install -m 755 ${./scripts/launch-app.sh} "$out"/scripts/launch-app.sh
 
-    # 6. Config directory
+    # 6. External KasmVNC flake directory
+    mkdir -p "$out"/kasmvnc
+    cp -r ${./kasmvnc}/. "$out"/kasmvnc/
+
+    # 7. Config directory
     mkdir -p "$out"/config/fluxbox
     install -m 644 ${./config/Xresources} "$out"/config/Xresources
     install -m 644 ${./config/proxychains.conf.template} "$out"/config/proxychains.conf.template
@@ -63,11 +69,11 @@
     install -m 644 ${./config/fluxbox/init} "$out"/config/fluxbox/init
     install -m 755 ${./config/fluxbox/startup} "$out"/config/fluxbox/startup
 
-    # 7. Wrappers
+    # 8. Wrappers
     mkdir -p "$out"/wrappers
     install -m 755 ${./wrappers/google-chrome.sh} "$out"/wrappers/google-chrome.sh
 
-    # 8. VPN config examples
+    # 9. VPN config examples
     install -m 644 ${./v2ray-client.json.example} "$out"/v2ray-client.json.example
     install -m 644 ${./v2ray-client-reality.json.example} "$out"/v2ray-client-reality.json.example
 
