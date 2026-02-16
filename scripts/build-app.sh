@@ -59,8 +59,13 @@ build_app() {
 
     if [ -x "$SCRIPT_DIR/result/bin/camoufox" ]; then
         local camoufox_version
-        camoufox_version="$("$SCRIPT_DIR/result/bin/camoufox" --version 2>/dev/null | head -1 || echo "unknown")"
-        echo "   ✅ Camoufox version: $camoufox_version"
+        camoufox_version="$("$SCRIPT_DIR/result/bin/camoufox" --version 2>&1 | head -1 || true)"
+        if [ -n "$camoufox_version" ]; then
+            echo "   ✅ Camoufox version: $camoufox_version"
+        else
+            echo "   ⚠️  Camoufox did not return a version string"
+            echo "      Check launch stderr in ~/.fluxbox-debug.log after clicking Camoufox in Fluxbox"
+        fi
     fi
 }
 

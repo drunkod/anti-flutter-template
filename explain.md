@@ -28,6 +28,7 @@ Both launchers use:
 - `--no-remote`
 - `--new-instance`
 - profile isolation (`~/.camoufox/profile-1` and `~/.camoufox/profile-2`)
+- container-safe defaults (`MOZ_DISABLE_*_SANDBOX=1`, software rendering)
 
 This allows running two independent Camoufox sessions in parallel.
 

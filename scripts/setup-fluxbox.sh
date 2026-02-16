@@ -57,8 +57,8 @@ setup_fluxbox() {
 
     # Ensure browser commands exist before the Antigravity build creates symlinks.
     ensure_launcher "$BROWSER_CMD" google-chrome chromium chromium-browser xdg-open || true
-    ensure_launcher "$CAMOUFOX_BROWSER1_CMD" camoufox "$BROWSER_CMD" || true
-    ensure_launcher "$CAMOUFOX_BROWSER2_CMD" camoufox "$BROWSER_CMD" || true
+    ensure_launcher "$CAMOUFOX_BROWSER1_CMD" camoufox || true
+    ensure_launcher "$CAMOUFOX_BROWSER2_CMD" camoufox || true
 
     # ── Menu (heredoc with debug logging) ──
     cat > "$HOME/.fluxbox/menu" <<MENUEOF
@@ -74,10 +74,10 @@ setup_fluxbox() {
     [exec] (Chromium — google.com) {echo "\$(date): EXEC browser google" >> ${DBGLOG}; ${BROWSER_CMD} https://www.google.com 2>> ${DBGLOG}}
     [exec] (Chromium — check IP) {echo "\$(date): EXEC browser ifconfig" >> ${DBGLOG}; ${BROWSER_CMD} https://ifconfig.me 2>> ${DBGLOG}}
     [separator]
-    [exec] (Camoufox #1) {echo "\$(date): EXEC camoufox-1 cmd=${CAMOUFOX_BROWSER1_CMD}" >> ${DBGLOG}; ls -la ${CAMOUFOX_BROWSER1_CMD} >> ${DBGLOG} 2>&1; ${CAMOUFOX_BROWSER1_CMD} 2>> ${DBGLOG}}
-    [exec] (Camoufox #1 — google.com) {echo "\$(date): EXEC camoufox-1 google" >> ${DBGLOG}; ${CAMOUFOX_BROWSER1_CMD} https://www.google.com 2>> ${DBGLOG}}
-    [exec] (Camoufox #2) {echo "\$(date): EXEC camoufox-2 cmd=${CAMOUFOX_BROWSER2_CMD}" >> ${DBGLOG}; ls -la ${CAMOUFOX_BROWSER2_CMD} >> ${DBGLOG} 2>&1; ${CAMOUFOX_BROWSER2_CMD} 2>> ${DBGLOG}}
-    [exec] (Camoufox #2 — check IP) {echo "\$(date): EXEC camoufox-2 ifconfig" >> ${DBGLOG}; ${CAMOUFOX_BROWSER2_CMD} https://ifconfig.me 2>> ${DBGLOG}}
+    [exec] (Camoufox #1) {echo "\$(date): EXEC camoufox-1 cmd=${CAMOUFOX_BROWSER1_CMD}" >> ${DBGLOG}; ls -la ${CAMOUFOX_BROWSER1_CMD} >> ${DBGLOG} 2>&1; FLUXBOX_DEBUG_LOG=${DBGLOG} ${CAMOUFOX_BROWSER1_CMD} 2>> ${DBGLOG}}
+    [exec] (Camoufox #1 — google.com) {echo "\$(date): EXEC camoufox-1 google" >> ${DBGLOG}; FLUXBOX_DEBUG_LOG=${DBGLOG} ${CAMOUFOX_BROWSER1_CMD} https://www.google.com 2>> ${DBGLOG}}
+    [exec] (Camoufox #2) {echo "\$(date): EXEC camoufox-2 cmd=${CAMOUFOX_BROWSER2_CMD}" >> ${DBGLOG}; ls -la ${CAMOUFOX_BROWSER2_CMD} >> ${DBGLOG} 2>&1; FLUXBOX_DEBUG_LOG=${DBGLOG} ${CAMOUFOX_BROWSER2_CMD} 2>> ${DBGLOG}}
+    [exec] (Camoufox #2 — check IP) {echo "\$(date): EXEC camoufox-2 ifconfig" >> ${DBGLOG}; FLUXBOX_DEBUG_LOG=${DBGLOG} ${CAMOUFOX_BROWSER2_CMD} https://ifconfig.me 2>> ${DBGLOG}}
   [end]
   [submenu] (Tools)
     [exec] (File Listing) {echo "\$(date): EXEC file-listing" >> ${DBGLOG}; ${TERMINAL_BIN} -fa "DejaVu Sans Mono" -fs 11 -e ${SHELL_BIN} -lc 'ls -la ~; echo "---"; read -rp "Press Enter..."' 2>> ${DBGLOG}}

@@ -10,10 +10,10 @@
     [exec] (Chromium — google.com) {{{BROWSER_CMD}} https://www.google.com}
     [exec] (Chromium — check IP) {{{BROWSER_CMD}} https://ifconfig.me}
     [separator]
-    [exec] (Camoufox #1) {{{CAMOUFOX_BROWSER1_CMD}}}
-    [exec] (Camoufox #1 — google.com) {{{CAMOUFOX_BROWSER1_CMD}} https://www.google.com}
-    [exec] (Camoufox #2) {{{CAMOUFOX_BROWSER2_CMD}}}
-    [exec] (Camoufox #2 — check IP) {{{CAMOUFOX_BROWSER2_CMD}} https://ifconfig.me}
+    [exec] (Camoufox #1) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_BROWSER1_CMD}}}
+    [exec] (Camoufox #1 — google.com) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_BROWSER1_CMD}} https://www.google.com}
+    [exec] (Camoufox #2) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_BROWSER2_CMD}}}
+    [exec] (Camoufox #2 — check IP) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_BROWSER2_CMD}} https://ifconfig.me}
   [end]
   [submenu] (Tools)
     [exec] (File Listing) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'ls -la ~; echo "---"; read -rp "Press Enter..."'}
