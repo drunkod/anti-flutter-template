@@ -1,16 +1,50 @@
 # Bootstrap script for Slint Android template creation.
-{ pkgs, ... }: {
+{ pkgs, ... }:
+let
+  overlays = import ./.idx/overlays/default.nix;
+  extendedPkgs = builtins.foldl' (p: overlay: p.extend overlay) pkgs overlays;
+in {
   channel = "stable-25.05";
 
   packages = [
+    # Bootstrap utilities
     pkgs.coreutils
     pkgs.findutils
     pkgs.gnutar
     pkgs.xz
+
+    # .idx/modules/packages.nix
     pkgs.git
+    pkgs.curl
+    pkgs.wget
+    pkgs.jq
+    pkgs.tree
+    pkgs.file
+    pkgs.which
+    pkgs.ripgrep
+    pkgs.fd
+    pkgs.bat
+    pkgs.gcc
+    pkgs.gnumake
+    pkgs.pkg-config
+
+    # .idx/modules/environment.nix and .idx/modules/slint-android/default.nix
+    pkgs.wayland
+    pkgs.libxkbcommon
+    pkgs.fontconfig
+    pkgs.cargo-apk
+    pkgs.jdk17
+    pkgs.android-tools
+
+    # Overlay-provided dependencies from .idx/overlays/*
+    extendedPkgs.rustToolchain
+    extendedPkgs.androidSdk
   ];
 
   bootstrap = ''
+
+
+  
     mkdir -p "$out"/src
     mkdir -p "$out"/.idx/modules/gstreamer-android
     mkdir -p "$out"/.idx/modules/slint-android
