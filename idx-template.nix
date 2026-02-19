@@ -16,16 +16,16 @@
     pkgs.xz
     pkgs.git
     pkgs.busybox
-    pkgs.flutter
+    # pkgs.flutter
   ];
 
   bootstrap = ''
     # 1. Create Flutter project
-    flutter create "$out" \
-      --template="${template}" \
-      --platforms="${platforms}" \
-      ${if sample == "none" then "" else "--sample=${sample}"} \
-      ${if blank then "-e" else ""}
+    # flutter create "$out" \
+    #   --template="${template}" \
+    #   --platforms="${platforms}" \
+    #   ${if sample == "none" then "" else "--sample=${sample}"} \
+    #   ${if blank then "-e" else ""}
 
     # 2. Copy workspace dev.nix (Flutter + Antigravity, Dart-only)
     mkdir -p "$out"/.idx
@@ -69,6 +69,7 @@
 
     # 8. Camoufox launchers
     mkdir -p "$out"/camoufox
+    install -m 644 ${./camoufox/flake.nix} "$out"/camoufox/flake.nix
     install -m 644 ${./camoufox/README.md} "$out"/camoufox/README.md
     install -m 755 ${./camoufox/browser-1.sh} "$out"/camoufox/browser-1.sh
     install -m 755 ${./camoufox/browser-2.sh} "$out"/camoufox/browser-2.sh

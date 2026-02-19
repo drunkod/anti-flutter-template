@@ -19,24 +19,29 @@ Key packaging points reused:
 
 ### 1. New folder: `camoufox/`
 
+- `camoufox/flake.nix` (standalone Camoufox package flake)
 - `camoufox/browser-1.sh`
 - `camoufox/browser-2.sh`
 - `camoufox/README.md`
 
 Both launchers use:
 
-- `--no-remote`
-- `--new-instance`
+- `-no-remote`
+- `-new-instance`
 - profile isolation (`~/.camoufox/profile-1` and `~/.camoufox/profile-2`)
-- container-safe defaults (`MOZ_DISABLE_*_SANDBOX=1`, software rendering)
+- wrapped `camoufox` binary from Nix output (`$out/bin/camoufox`)
 
 This allows running two independent Camoufox sessions in parallel.
 
-### 2. `flake.nix` integration
+### 2. Root `flake.nix` integration
 
 Added:
 
-- `camoufoxPkg` derivation (version `135.0.1-beta.24`)
+- external flake input:
+  - `camoufox.url = "path:./camoufox"`
+  - `camoufox.inputs.nixpkgs.follows = "nixpkgs"`
+- package import from input:
+  - `camoufoxPkg = camoufox.packages.${system}.camoufox`
 - Wrapper generation with `pkgs.replaceVars` for:
   - `camoufox-browser-1`
   - `camoufox-browser-2`
@@ -81,6 +86,7 @@ Reference templates were also updated:
 
 Updated `idx-template.nix` so generated Flutter projects also include:
 
+- `camoufox/flake.nix`
 - `camoufox/browser-1.sh`
 - `camoufox/browser-2.sh`
 - `camoufox/README.md`

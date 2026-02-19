@@ -64,6 +64,7 @@ anti-flutter-template/
 ├── wrappers/
 │   └── google-chrome.sh      ← Proxy-aware Chromium wrapper
 ├── camoufox/
+│   ├── flake.nix             ← External Camoufox package flake (used via root flake input)
 │   ├── browser-1.sh          ← Camoufox launcher (profile-1)
 │   ├── browser-2.sh          ← Camoufox launcher (profile-2)
 │   └── README.md             ← Camoufox launcher notes
@@ -111,8 +112,10 @@ All ports use `${VAR:-default}` so IDX can override them (e.g. `NOVNC_PORT=$PORT
 
 **`flake.nix` builds:**
 - Wraps `pkgs.antigravity` with a controlled PATH
+- Uses external input `camoufox.url = "path:./camoufox"`
+- Follows root nixpkgs for the external input (`camoufox.inputs.nixpkgs.follows = "nixpkgs"`)
 - Creates `google-chrome` wrapper that auto-detects VPN proxy (`$PROXY_SOCKS5`)
-- Packages Camoufox (`135.0.1-beta.24`) from upstream zip release
+- Imports Camoufox package from `camoufox.packages.${system}.camoufox`
 - Installs `camoufox-browser-1` and `camoufox-browser-2` wrappers with isolated profiles
 - Creates `xdg-open` wrapper pointing to same Chromium
 - Disables GPU/Vulkan via env vars

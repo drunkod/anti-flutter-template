@@ -29,6 +29,7 @@ An [Antigravity](https://github.com/nicolo-ribaudo/antigravity) workspace with a
 ├── wrappers/
 │   └── google-chrome.sh          # Chrome wrapper w/ proxy support
 ├── camoufox/
+│   ├── flake.nix                # External Camoufox package flake
 │   ├── browser-1.sh              # Camoufox wrapper (profile-1)
 │   ├── browser-2.sh              # Camoufox wrapper (profile-2)
 │   └── README.md                 # Notes for dual Camoufox launchers

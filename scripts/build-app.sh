@@ -16,7 +16,7 @@ build_app() {
     local previous_dir
     previous_dir="$PWD"
     cd "$SCRIPT_DIR"
-    nix build . --impure 2>&1 | sed '/warning: Git tree/d'
+    nix build "path:$SCRIPT_DIR#default" --impure --no-write-lock-file 2>&1 | sed '/warning: Git tree/d'
     cd "$previous_dir"
 
     if [ ! -x "$SCRIPT_DIR/result/bin/antigravity" ]; then
@@ -60,6 +60,9 @@ build_app() {
     if [ -x "$SCRIPT_DIR/result/bin/camoufox" ]; then
         local camoufox_version
         camoufox_version="$("$SCRIPT_DIR/result/bin/camoufox" --version 2>&1 | head -1 || true)"
+        if [ -z "$camoufox_version" ]; then
+            camoufox_version="$("$SCRIPT_DIR/result/bin/camoufox-bin" --version 2>&1 | head -1 || true)"
+        fi
         if [ -n "$camoufox_version" ]; then
             echo "   ✅ Camoufox version: $camoufox_version"
         else
