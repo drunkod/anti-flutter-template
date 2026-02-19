@@ -3,6 +3,9 @@
 let
   overlays = import ./.idx/overlays/default.nix;
   extendedPkgs = builtins.foldl' (p: overlay: p.extend overlay) pkgs overlays;
+  androidSdkIfAllowed =
+    let sdkEval = builtins.tryEval extendedPkgs.androidSdk;
+    in if sdkEval.success then [ sdkEval.value ] else [];
 in {
   channel = "stable-25.05";
 
@@ -38,13 +41,9 @@ in {
 
     # Overlay-provided dependencies from .idx/overlays/*
     extendedPkgs.rustToolchain
-    extendedPkgs.androidSdk
-  ];
+  ] ++ androidSdkIfAllowed;
 
   bootstrap = ''
-
-
-  
     mkdir -p "$out"/src
     mkdir -p "$out"/.idx/modules/gstreamer-android
     mkdir -p "$out"/.idx/modules/slint-android
