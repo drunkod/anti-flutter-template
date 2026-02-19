@@ -4,8 +4,10 @@ let
   overlays = import ./.idx/overlays/default.nix;
   extendedPkgs = builtins.foldl' (p: overlay: p.extend overlay) pkgs overlays;
   androidSdkIfAllowed =
-    let sdkEval = builtins.tryEval extendedPkgs.androidSdk;
-    in if sdkEval.success then [ sdkEval.value ] else [];
+    if (pkgs.config.allowUnfree or false) then
+      [ extendedPkgs.androidSdk ]
+    else
+      [];
 in {
   channel = "stable-25.05";
 
