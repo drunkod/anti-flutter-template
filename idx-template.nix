@@ -9,7 +9,7 @@ let
     else
       [];
 in {
-  channel = "stable-25.05";
+  channel = "unstable";
 
   packages = [
     # Bootstrap utilities

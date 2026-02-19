@@ -25,7 +25,7 @@ let
 in {
   imports = [
     {
-      channel = "stable-25.05";
+      channel = "unstable";
       packages = packages;
       env = environment;
     }
