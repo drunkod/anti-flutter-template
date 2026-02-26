@@ -8,7 +8,7 @@
 , platforms ? "web"
 , ...
 }: {
-  channel = "stable-25.05";
+  channel = "unstable";
 
   packages = [
     pkgs.curl
@@ -17,6 +17,33 @@
     pkgs.git
     pkgs.busybox
     # pkgs.flutter
+
+    pkgs.tigervnc
+    pkgs.fluxbox
+    pkgs.python314Packages.websockify
+    pkgs.novnc
+    pkgs.antigravity
+
+    # Desktop environment
+    pkgs.dbus
+    pkgs.xterm
+    pkgs.xdotool
+    pkgs.xorg.xrdb
+    pkgs.psmisc
+
+    # Fonts
+    pkgs.fontconfig
+    pkgs.dejavu_fonts
+    pkgs.liberation_ttf
+    pkgs.noto-fonts
+
+    # VPN / networking
+    pkgs.xray
+    pkgs.proxychains-ng
+    pkgs.wget
+
+    # Utilities (no firebase-tools, no JDK)
+    # pkgs.unzip
   ];
 
   bootstrap = ''
