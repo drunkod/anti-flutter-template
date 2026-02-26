@@ -37,7 +37,7 @@ in
     pkgs.dbus
     pkgs.xterm
     pkgs.xdotool
-    pkgs.xrdb
+    # pkgs.xrdb
     pkgs.psmisc
 
     # Fonts
