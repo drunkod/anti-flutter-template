@@ -7,7 +7,16 @@
 , blank ? false
 , platforms ? "web"
 , ...
-}: {
+}:
+let
+  # Re-import nixpkgs with unfree packages permitted so that
+  # antigravity (which carries an "unfree" license) can be evaluated.
+  unfreePkgs = import pkgs.path {
+    inherit (pkgs) system;
+    config.allowUnfree = true;
+  };
+in
+{
   channel = "unstable";
 
   packages = [
@@ -22,7 +31,7 @@
     pkgs.fluxbox
     pkgs.python314Packages.websockify
     pkgs.novnc
-    pkgs.antigravity
+    unfreePkgs.antigravity             # ← pulled from the unfree-enabled set
 
     # Desktop environment
     pkgs.dbus
@@ -43,7 +52,7 @@
     pkgs.wget
 
     # Utilities (no firebase-tools, no JDK)
-    # pkgs.unzip
+    pkgs.unzip
   ];
 
   bootstrap = ''
