@@ -29,7 +29,7 @@ in
 
     pkgs.tigervnc
     pkgs.fluxbox
-    pkgs.python314Packages.websockify
+    pkgs.python313Packages.websockify
     pkgs.novnc
     # unfreePkgs.antigravity             # ← pulled from the unfree-enabled set
 
