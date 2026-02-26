@@ -63,11 +63,32 @@ if [ "$XRAY_RUNNING" = true ]; then
 fi
 
 if [ -f "$PID_FILE" ]; then
-    read -r VNC_PID FLUXBOX_PID WEBSOCKIFY_PID APP_PID DBUS_PID XRAY_PID < "$PID_FILE" 2>/dev/null || true
+    mapfile -t PID_FIELDS < <(tr -s '[:space:]' '\n' < "$PID_FILE")
+
+    VNC_PID="${PID_FIELDS[0]:-}"
+    FLUXBOX_PID="${PID_FIELDS[1]:-}"
+    WEBSOCKIFY_PID="${PID_FIELDS[2]:-}"
+
+    # Support both PID formats:
+    # 6 fields: VNC Fluxbox websockify App DBus Xray
+    # 5 fields: VNC Fluxbox websockify DBus Xray (desktop-only launcher)
+    if [ "${#PID_FIELDS[@]}" -ge 6 ]; then
+        APP_PID="${PID_FIELDS[3]:-}"
+        DBUS_PID="${PID_FIELDS[4]:-}"
+        XRAY_PID="${PID_FIELDS[5]:-}"
+    else
+        APP_PID=""
+        DBUS_PID="${PID_FIELDS[3]:-}"
+        XRAY_PID="${PID_FIELDS[4]:-}"
+    fi
 
     echo "📄 PID File Contents:"
     echo "   VNC: ${VNC_PID:-?} | Fluxbox: ${FLUXBOX_PID:-?} | websockify: ${WEBSOCKIFY_PID:-?}"
-    echo "   App: ${APP_PID:-?} | DBus: ${DBUS_PID:-N/A} | Xray: ${XRAY_PID:-N/A}"
+    if [ -n "${APP_PID:-}" ]; then
+        echo "   App: ${APP_PID} | DBus: ${DBUS_PID:-N/A} | Xray: ${XRAY_PID:-N/A}"
+    else
+        echo "   App: N/A (desktop-only mode) | DBus: ${DBUS_PID:-N/A} | Xray: ${XRAY_PID:-N/A}"
+    fi
     echo ""
 
     echo "📋 PID Status:"
@@ -75,7 +96,6 @@ if [ -f "$PID_FILE" ]; then
         "VNC:${VNC_PID:-}" \
         "Fluxbox:${FLUXBOX_PID:-}" \
         "websockify:${WEBSOCKIFY_PID:-}" \
-        "App:${APP_PID:-}" \
         "DBus:${DBUS_PID:-}" \
         "Xray:${XRAY_PID:-}"; do
         name="${name_pid%%:*}"
@@ -89,6 +109,13 @@ if [ -f "$PID_FILE" ]; then
             fi
         fi
     done
+    if [ -n "${APP_PID:-}" ]; then
+        if kill -0 "$APP_PID" 2>/dev/null; then
+            echo "   ✅ App ($APP_PID) - alive"
+        else
+            echo "   💀 App ($APP_PID) - dead"
+        fi
+    fi
     echo ""
 fi
 

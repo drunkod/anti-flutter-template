@@ -37,6 +37,7 @@ An [Antigravity](https://github.com/nicolo-ribaudo/antigravity) workspace with a
 ├── lib.sh                        # Shared bash utilities
 ├── flake.nix                     # Nix build definition
 ├── justfile                      # Task runner (just start/stop/status)
+├── start-desktop-vpn.sh          # Desktop launcher (VNC + Fluxbox + optional VPN)
 ├── start-with-vnc.sh             # Main launcher (VNC + VPN + app)
 ├── start-vpn.sh                  # Xray VPN proxy launcher
 ├── stop-vnc.sh                   # Stop all services
@@ -71,7 +72,8 @@ make update
 ## Antigravity Services
 
 ```bash
-just start    # Launch VNC + VPN + Antigravity
+just start    # Launch VNC + Fluxbox + VPN (no app)
+just start-app # Launch VNC + VPN + Antigravity app
 just stop     # Stop all services
 just status   # Check service status
 just vpn      # Start VPN only

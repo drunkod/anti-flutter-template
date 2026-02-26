@@ -13,7 +13,24 @@ echo "🧹 Stopping Antigravity VNC services..."
 kill_by_pattern "$APP_PATTERN" 2
 
 if [ -f "$PID_FILE" ]; then
-    read -r VNC_PID FLUXBOX_PID WEBSOCKIFY_PID APP_PID DBUS_PID XRAY_PID < "$PID_FILE" 2>/dev/null || true
+    mapfile -t PID_FIELDS < <(tr -s '[:space:]' '\n' < "$PID_FILE")
+
+    VNC_PID="${PID_FIELDS[0]:-}"
+    FLUXBOX_PID="${PID_FIELDS[1]:-}"
+    WEBSOCKIFY_PID="${PID_FIELDS[2]:-}"
+
+    # Support both PID formats:
+    # 6 fields: VNC Fluxbox websockify App DBus Xray
+    # 5 fields: VNC Fluxbox websockify DBus Xray (desktop-only launcher)
+    if [ "${#PID_FIELDS[@]}" -ge 6 ]; then
+        APP_PID="${PID_FIELDS[3]:-}"
+        DBUS_PID="${PID_FIELDS[4]:-}"
+        XRAY_PID="${PID_FIELDS[5]:-}"
+    else
+        APP_PID=""
+        DBUS_PID="${PID_FIELDS[3]:-}"
+        XRAY_PID="${PID_FIELDS[4]:-}"
+    fi
 
     for pid in "${APP_PID:-}" "${WEBSOCKIFY_PID:-}" "${FLUXBOX_PID:-}" "${VNC_PID:-}" "${DBUS_PID:-}" "${XRAY_PID:-}"; do
         kill_by_pid "$pid" 1

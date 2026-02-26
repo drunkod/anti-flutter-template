@@ -61,6 +61,7 @@ in
     install -m 644 ${./justfile} "$out"/justfile
 
     # 4. Shell scripts
+    install -m 755 ${./start-desktop-vpn.sh} "$out"/start-desktop-vpn.sh
     install -m 755 ${./start-with-vnc.sh} "$out"/start-with-vnc.sh
     install -m 755 ${./start-vpn.sh} "$out"/start-vpn.sh
     install -m 755 ${./stop-vnc.sh} "$out"/stop-vnc.sh
