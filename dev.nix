@@ -20,7 +20,11 @@
     pkgs.xray
     pkgs.proxychains-ng
     pkgs.wget
-
+    pkgs.dbus
+    pkgs.tigervnc
+    pkgs.fluxbox
+    pkgs.python313Packages.websockify
+    pkgs.novnc
     # Utilities (no firebase-tools, no JDK)
     pkgs.unzip
   ];
