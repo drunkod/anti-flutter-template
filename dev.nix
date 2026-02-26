@@ -6,7 +6,6 @@
 
   packages = [
     # Antigravity VNC infrastructure
-    pkgs.xrdb
     pkgs.antigravity
 
     pkgs.psmisc
