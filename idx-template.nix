@@ -38,21 +38,7 @@ in
     pkgs.xterm
     pkgs.xdotool
     # pkgs.xrdb
-    pkgs.psmisc
 
-    # Fonts
-    pkgs.fontconfig
-    pkgs.dejavu_fonts
-    pkgs.liberation_ttf
-    pkgs.noto-fonts
-
-    # VPN / networking
-    pkgs.xray
-    pkgs.proxychains-ng
-    pkgs.wget
-
-    # Utilities (no firebase-tools, no JDK)
-    pkgs.unzip
   ];
 
   bootstrap = ''

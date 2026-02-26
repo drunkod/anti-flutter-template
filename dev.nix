@@ -8,6 +8,22 @@
     # Antigravity VNC infrastructure
     pkgs.xrdb
     pkgs.antigravity
+
+    pkgs.psmisc
+
+    # Fonts
+    pkgs.fontconfig
+    pkgs.dejavu_fonts
+    pkgs.liberation_ttf
+    pkgs.noto-fonts
+
+    # VPN / networking
+    pkgs.xray
+    pkgs.proxychains-ng
+    pkgs.wget
+
+    # Utilities (no firebase-tools, no JDK)
+    pkgs.unzip
   ];
 
   env = {};
