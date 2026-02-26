@@ -31,7 +31,7 @@ in
     pkgs.fluxbox
     pkgs.python314Packages.websockify
     pkgs.novnc
-    unfreePkgs.antigravity             # ← pulled from the unfree-enabled set
+    # unfreePkgs.antigravity             # ← pulled from the unfree-enabled set
 
     # Desktop environment
     pkgs.dbus

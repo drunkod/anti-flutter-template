@@ -6,7 +6,7 @@
 
   packages = [
     # Antigravity VNC infrastructure
-
+    pkgs.antigravity
   ];
 
   env = {};
