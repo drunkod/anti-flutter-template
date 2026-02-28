@@ -36,6 +36,8 @@ in
     # Browser dependencies
     pkgs.chromium
 
+    pkgs.antigravity
+
   ];
 
   bootstrap = ''
@@ -53,6 +55,9 @@ in
     # 2b. Link Camoufox binary into $out/bin
     ln -sf ${camoufox}/bin/camoufox "$out"/bin/camoufox
     ln -sf ${camoufox}/bin/camoufox-bin "$out"/bin/camoufox-bin
+
+    # 2c. Link Antigravity into $out/bin
+    ln -sf ${pkgs.antigravity}/bin/antigravity "$out"/bin/antigravity
 
     mkdir -p "$out"/.idx
     install -m 644 ${./dev.nix} "$out"/.idx/dev.nix
@@ -76,6 +81,7 @@ in
     install -m 755 ${./scripts/setup-dbus.sh} "$out"/scripts/setup-dbus.sh
     install -m 755 ${./scripts/setup-gpu-env.sh} "$out"/scripts/setup-gpu-env.sh
     install -m 755 ${./scripts/setup-fluxbox.sh} "$out"/scripts/setup-fluxbox.sh
+    install -m 755 ${./scripts/setup-xdg.sh} "$out"/scripts/setup-xdg.sh
     install -m 755 ${./scripts/start-vnc-server.sh} "$out"/scripts/start-vnc-server.sh
 
     # 6. Config directory

@@ -15,6 +15,8 @@ source "$SCRIPT_DIR/scripts/setup-dbus.sh"
 source "$SCRIPT_DIR/scripts/setup-gpu-env.sh"
 # shellcheck source=./scripts/setup-fluxbox.sh
 source "$SCRIPT_DIR/scripts/setup-fluxbox.sh"
+# shellcheck source=./scripts/setup-xdg.sh
+source "$SCRIPT_DIR/scripts/setup-xdg.sh"
 # shellcheck source=./scripts/start-vnc-server.sh
 source "$SCRIPT_DIR/scripts/start-vnc-server.sh"
 
@@ -27,6 +29,8 @@ trap 'on_error "$LINENO"' ERR
 
 export DISPLAY=":$DISPLAY_NUM"
 export NIXPKGS_ALLOW_UNFREE=1
+export BROWSER="$BROWSER_CMD"
+export PATH="$SCRIPT_DIR/bin:$HOME/.local/bin:$PATH"
 
 echo "============================================"
 echo "🚀 VNC Desktop Launcher (with VPN)"
@@ -78,6 +82,7 @@ else
 fi
 
 setup_fluxbox
+setup_xdg
 start_vnc_server
 
 echo "============================================"
