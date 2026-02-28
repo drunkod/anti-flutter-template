@@ -30,7 +30,7 @@
     # pkgs.xorg.xrdb
 
     # Browser dependencies
-    pkgs.chromium
+    # pkgs.chromium
 
   ];
 

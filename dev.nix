@@ -24,6 +24,8 @@
     pkgs.python313Packages.websockify
     pkgs.novnc
     pkgs.unzip
+
+    pkgs.chromium
   ];
 
   env = {};
