@@ -16,7 +16,6 @@ source "$SCRIPT_DIR/scripts/setup-gpu-env.sh"
 # shellcheck source=./scripts/setup-fluxbox.sh
 source "$SCRIPT_DIR/scripts/setup-fluxbox.sh"
 # shellcheck source=./scripts/start-vnc-server.sh
-source "$SCRIPT_DIR/scripts/build-env.sh"
 source "$SCRIPT_DIR/scripts/start-vnc-server.sh"
 
 on_error() {
