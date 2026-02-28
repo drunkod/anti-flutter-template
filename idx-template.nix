@@ -8,6 +8,51 @@
 , platforms ? "web"
 , ...
 }:
+let
+  # Build Camoufox from the local flake definition (same derivation as camoufox/flake.nix)
+  camoufox = pkgs.stdenv.mkDerivation rec {
+    pname = "camoufox";
+    version = "135.0.1-beta.24";
+
+    src = pkgs.fetchzip {
+      url = "https://github.com/daijro/camoufox/releases/download/v${version}/camoufox-${version}-lin.x86_64.zip";
+      sha256 = "sha256-k5t12L5q0RG8Zun0SAjGthYQXUcf+xVHvk9Mknr97QY=";
+      stripRoot = false;
+    };
+
+    nativeBuildInputs = [
+      pkgs.autoPatchelfHook
+      pkgs.wrapGAppsHook3
+      pkgs.lndir
+      pkgs.jq
+      pkgs.gtk3
+    ];
+
+    buildInputs = with pkgs; [
+      gtk3 glib pango cairo gdk-pixbuf atk libxkbcommon
+      stdenv.cc.cc.lib alsa-lib gsettings-desktop-schemas
+      fontconfig libglvnd at-spi2-atk dbus librsvg
+      libx11 libxcomposite libxdamage libxfixes
+      libxrandr libxrender libxtst
+    ];
+
+    gappsWrapperArgs = [
+      "--prefix XDG_DATA_DIRS : ${pkgs.gsettings-desktop-schemas}/share"
+      "--prefix XDG_DATA_DIRS : ${pkgs.gtk3}/share"
+      "--prefix LD_LIBRARY_PATH : ${placeholder "out"}/lib/${pname}"
+    ];
+
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/lib/${pname}
+      cp -r ./* $out/lib/${pname}/
+      mkdir -p $out/bin
+      ln -s $out/lib/${pname}/camoufox $out/bin/camoufox
+      ln -s $out/lib/${pname}/camoufox-bin $out/bin/camoufox-bin
+      runHook postInstall
+    '';
+  };
+in
 {
   channel = "unstable";
 
@@ -46,14 +91,9 @@
     mkdir -p "$out"/bin
     ln -sf ${pkgs.chromium}/bin/chromium "$out"/bin/chromium
 
-    # 2b. Build Camoufox from its flake and link binary into $out/bin
-    camoufox_tmp="$(mktemp -d)"
-    cp -r ${./camoufox}/* "$camoufox_tmp"/
-    chmod -R u+w "$camoufox_tmp"
-    camoufox_store="$(nix --extra-experimental-features 'nix-command flakes' \
-      build --no-link --print-out-paths "path:$camoufox_tmp")"
-    ln -sf "$camoufox_store"/bin/camoufox "$out"/bin/camoufox
-    rm -rf "$camoufox_tmp"
+    # 2b. Link Camoufox binary into $out/bin
+    ln -sf ${camoufox}/bin/camoufox "$out"/bin/camoufox
+    ln -sf ${camoufox}/bin/camoufox-bin "$out"/bin/camoufox-bin
 
     mkdir -p "$out"/.idx
     install -m 644 ${./dev.nix} "$out"/.idx/dev.nix
