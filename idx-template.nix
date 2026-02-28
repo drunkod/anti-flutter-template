@@ -46,6 +46,12 @@
     mkdir -p "$out"/bin
     ln -sf ${pkgs.chromium}/bin/chromium "$out"/bin/chromium
 
+    # 2b. Build Camoufox from its flake and link binary into $out/bin
+    nix build --no-link --print-out-paths "path:${./camoufox}" \
+      | while read -r store_path; do
+          ln -sf "$store_path"/bin/camoufox "$out"/bin/camoufox
+        done
+
     mkdir -p "$out"/.idx
     install -m 644 ${./dev.nix} "$out"/.idx/dev.nix
 
