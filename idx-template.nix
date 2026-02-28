@@ -9,49 +9,8 @@
 , ...
 }:
 let
-  # Build Camoufox from the local flake definition (same derivation as camoufox/flake.nix)
-  camoufox = pkgs.stdenv.mkDerivation rec {
-    pname = "camoufox";
-    version = "135.0.1-beta.24";
-
-    src = pkgs.fetchzip {
-      url = "https://github.com/daijro/camoufox/releases/download/v${version}/camoufox-${version}-lin.x86_64.zip";
-      sha256 = "sha256-k5t12L5q0RG8Zun0SAjGthYQXUcf+xVHvk9Mknr97QY=";
-      stripRoot = false;
-    };
-
-    nativeBuildInputs = [
-      pkgs.autoPatchelfHook
-      pkgs.wrapGAppsHook3
-      pkgs.lndir
-      pkgs.jq
-      pkgs.gtk3
-    ];
-
-    buildInputs = with pkgs; [
-      gtk3 glib pango cairo gdk-pixbuf atk libxkbcommon
-      stdenv.cc.cc.lib alsa-lib gsettings-desktop-schemas
-      fontconfig libglvnd at-spi2-atk dbus librsvg
-      libx11 libxcomposite libxdamage libxfixes
-      libxrandr libxrender libxtst
-    ];
-
-    gappsWrapperArgs = [
-      "--prefix XDG_DATA_DIRS : ${pkgs.gsettings-desktop-schemas}/share"
-      "--prefix XDG_DATA_DIRS : ${pkgs.gtk3}/share"
-      "--prefix LD_LIBRARY_PATH : ${placeholder "out"}/lib/${pname}"
-    ];
-
-    installPhase = ''
-      runHook preInstall
-      mkdir -p $out/lib/${pname}
-      cp -r ./* $out/lib/${pname}/
-      mkdir -p $out/bin
-      ln -s $out/lib/${pname}/camoufox $out/bin/camoufox
-      ln -s $out/lib/${pname}/camoufox-bin $out/bin/camoufox-bin
-      runHook postInstall
-    '';
-  };
+  # Build Camoufox from the shared package definition
+  camoufox = import ./camoufox/package.nix { inherit pkgs; };
 in
 {
   channel = "unstable";
