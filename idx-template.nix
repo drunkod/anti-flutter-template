@@ -9,6 +9,12 @@
 , ...
 }:
 let
+  # Re-import nixpkgs with allowUnfree for proprietary packages (e.g. antigravity)
+  pkgsUnfree = import pkgs.path {
+    inherit (pkgs) system;
+    config.allowUnfree = true;
+  };
+
   # Build Camoufox from the shared package definition
   camoufox = import ./camoufox/package.nix { inherit pkgs; };
 in
@@ -36,7 +42,7 @@ in
     # Browser dependencies
     pkgs.chromium
 
-    pkgs.antigravity
+    pkgsUnfree.antigravity
 
   ];
 
@@ -57,7 +63,7 @@ in
     ln -sf ${camoufox}/bin/camoufox-bin "$out"/bin/camoufox-bin
 
     # 2c. Link Antigravity into $out/bin
-    ln -sf ${pkgs.antigravity}/bin/antigravity "$out"/bin/antigravity
+    ln -sf ${pkgsUnfree.antigravity}/bin/antigravity "$out"/bin/antigravity
 
     mkdir -p "$out"/.idx
     install -m 644 ${./dev.nix} "$out"/.idx/dev.nix
