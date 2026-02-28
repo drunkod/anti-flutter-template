@@ -22,6 +22,11 @@ ensure_launcher() {
             ln -sf "$(command -v "$cmd")" "$target"
             found=true
             break
+        elif [ -x "$SCRIPT_DIR/bin/$cmd" ]; then
+            mkdir -p "$(dirname "$target")"
+            ln -sf "$SCRIPT_DIR/bin/$cmd" "$target"
+            found=true
+            break
         fi
     done
 
@@ -39,8 +44,42 @@ setup_fluxbox() {
     SHELL_BIN="$(command -v bash 2>/dev/null || echo "/bin/sh")"
 
     ensure_launcher "$BROWSER_CMD" google-chrome chromium chromium-browser xdg-open || true
-    ensure_launcher "$CAMOUFOX_BROWSER1_CMD" camoufox || true
-    ensure_launcher "$CAMOUFOX_BROWSER2_CMD" camoufox || true
+
+    # Create camoufox launcher scripts that point to the actual binary.
+    # The binary is either in PATH or at $SCRIPT_DIR/bin/camoufox.
+    local camoufox_bin=""
+    if command -v camoufox >/dev/null 2>&1; then
+        camoufox_bin="$(command -v camoufox)"
+    elif [ -x "$SCRIPT_DIR/bin/camoufox" ]; then
+        camoufox_bin="$SCRIPT_DIR/bin/camoufox"
+    fi
+
+    if [ -n "$camoufox_bin" ]; then
+        mkdir -p "$(dirname "$CAMOUFOX_BROWSER1_CMD")"
+
+        cat > "$CAMOUFOX_BROWSER1_CMD" <<LAUNCHER
+#!/usr/bin/env bash
+set -euo pipefail
+profile_dir="\${CAMOUFOX_PROFILE_1_DIR:-\$HOME/.camoufox/profile-1}"
+mkdir -p "\$profile_dir"
+[ "\$#" -eq 0 ] && set -- "about:blank"
+exec "$camoufox_bin" -no-remote -new-instance -profile "\$profile_dir" "\$@"
+LAUNCHER
+        chmod +x "$CAMOUFOX_BROWSER1_CMD"
+
+        cat > "$CAMOUFOX_BROWSER2_CMD" <<LAUNCHER
+#!/usr/bin/env bash
+set -euo pipefail
+profile_dir="\${CAMOUFOX_PROFILE_2_DIR:-\$HOME/.camoufox/profile-2}"
+mkdir -p "\$profile_dir"
+[ "\$#" -eq 0 ] && set -- "about:blank"
+exec "$camoufox_bin" -no-remote -new-instance -profile "\$profile_dir" "\$@"
+LAUNCHER
+        chmod +x "$CAMOUFOX_BROWSER2_CMD"
+        echo "   ✅ Camoufox launchers created → $camoufox_bin"
+    else
+        echo "   ⚠️  Camoufox binary not found, skipping launcher setup"
+    fi
 
     render_template \
         "$SCRIPT_DIR/config/fluxbox/menu.template" \
