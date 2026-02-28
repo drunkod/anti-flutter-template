@@ -85,35 +85,6 @@ if [ -f "$PID_FILE" ]; then
     echo ""
 fi
 
-    VNC_PID="${PID_FIELDS[0]:-}"
-    FLUXBOX_PID="${PID_FIELDS[1]:-}"
-    WEBSOCKIFY_PID="${PID_FIELDS[2]:-}"
-    DBUS_PID="${PID_FIELDS[3]:-}"
-    XRAY_PID="${PID_FIELDS[4]:-}"
-
-    echo "📄 PID File Contents:"
-    echo "   VNC: ${VNC_PID:-?} | Fluxbox: ${FLUXBOX_PID:-?} | websockify: ${WEBSOCKIFY_PID:-?} | DBus: ${DBUS_PID:-N/A} | Xray: ${XRAY_PID:-N/A}"
-    echo ""
-
-    echo "📋 PID Status:"
-    for name_pid in \
-        "VNC:${VNC_PID:-}" \
-        "Fluxbox:${FLUXBOX_PID:-}" \
-        "websockify:${WEBSOCKIFY_PID:-}" \
-        "DBus:${DBUS_PID:-}" \
-        "Xray:${XRAY_PID:-}"; do
-        name="${name_pid%%:*}"
-        pid="${name_pid##*:}"
-
-        if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
-            echo "   ✅ $name ($pid) - alive"
-        elif [ -n "$pid" ]; then
-            echo "   💀 $name ($pid) - dead"
-        fi
-    done
-    echo ""
-fi
-
 echo "📺 VNC URL:"
 echo "$NOVNC_URL"
 echo ""

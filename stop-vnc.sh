@@ -13,6 +13,8 @@ echo "🧹 Stopping VNC Desktop services..."
 if [ -f "$PID_FILE" ]; then
     # shellcheck disable=SC1090
     source "$PID_FILE"
+    # XRAY_PID is sourced but intentionally not killed here;
+    # stop-vpn.sh handles it via VPN_PID_FILE
 
     for pid in "${WEBSOCKIFY_PID:-}" "${FLUXBOX_PID:-}" "${VNC_PID:-}" "${DBUS_PID:-}"; do
         kill_by_pid "$pid" 1
