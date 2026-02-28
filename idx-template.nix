@@ -28,6 +28,10 @@
     pkgs.xterm
     pkgs.xdotool
     pkgs.xorg.xrdb
+
+    # Browser dependencies
+    pkgs.chromium
+
   ];
 
   bootstrap = ''
