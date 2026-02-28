@@ -12,22 +12,22 @@
   channel = "unstable";
 
   packages = [
-    pkgs.curl
-    pkgs.gnutar
-    pkgs.xz
-    pkgs.git
-    pkgs.busybox
+    # pkgs.curl
+    # pkgs.gnutar
+    # pkgs.xz
+    # pkgs.git
+    # pkgs.busybox
 
-    pkgs.tigervnc
-    pkgs.fluxbox
-    pkgs.python313Packages.websockify
-    pkgs.novnc
+    # pkgs.tigervnc
+    # pkgs.fluxbox
+    # pkgs.python313Packages.websockify
+    # pkgs.novnc
 
-    # Desktop environment
-    pkgs.dbus
-    pkgs.xterm
-    pkgs.xdotool
-    pkgs.xorg.xrdb
+    # # Desktop environment
+    # pkgs.dbus
+    # pkgs.xterm
+    # pkgs.xdotool
+    # pkgs.xorg.xrdb
 
     # Browser dependencies
     pkgs.chromium
