@@ -1,6 +1,6 @@
-# Bootstrap script for Flutter + Antigravity template creation.
+# Bootstrap script for VNC template creation.
 # Runs `flutter create` with user-selected params from idx-template.json,
-# then copies the Antigravity infrastructure and dev.nix into the generated project.
+# then copies the VNC infrastructure and dev.nix into the generated project.
 { pkgs
 , sample ? "none"
 , template ? "app"
@@ -8,14 +8,6 @@
 , platforms ? "web"
 , ...
 }:
-let
-  # Re-import nixpkgs with unfree packages permitted so that
-  # antigravity (which carries an "unfree" license) can be evaluated.
-  unfreePkgs = import pkgs.path {
-    inherit (pkgs) system;
-    config.allowUnfree = true;
-  };
-in
 {
   channel = "unstable";
 
@@ -25,43 +17,30 @@ in
     pkgs.xz
     pkgs.git
     pkgs.busybox
-    # pkgs.flutter
 
     pkgs.tigervnc
     pkgs.fluxbox
     pkgs.python313Packages.websockify
     pkgs.novnc
-    # unfreePkgs.antigravity             # ← pulled from the unfree-enabled set
 
     # Desktop environment
     pkgs.dbus
     pkgs.xterm
     pkgs.xdotool
     pkgs.xorg.xrdb
-    # pkgs.xrdb
-
   ];
 
   bootstrap = ''
-    # 1. Create Flutter project
-    # flutter create "$out" \
-    #   --template="${template}" \
-    #   --platforms="${platforms}" \
-    #   ${if sample == "none" then "" else "--sample=${sample}"} \
-    #   ${if blank then "-e" else ""}
-
-    # 2. Copy workspace dev.nix (Flutter + Antigravity, Dart-only)
     mkdir -p "$out"/.idx
     install -m 644 ${./dev.nix} "$out"/.idx/dev.nix
 
-    # 3. Copy Antigravity infrastructure — root files
+    # 3. Copy VNC infrastructure — root files
     install -m 644 ${./config.env} "$out"/config.env
     install -m 755 ${./lib.sh} "$out"/lib.sh
     install -m 644 ${./flake.nix} "$out"/flake.nix
     install -m 644 ${./justfile} "$out"/justfile
 
     # 4. Shell scripts
-    install -m 755 ${./start-desktop-vpn.sh} "$out"/start-desktop-vpn.sh
     install -m 755 ${./start-with-vnc.sh} "$out"/start-with-vnc.sh
     install -m 755 ${./start-vpn.sh} "$out"/start-vpn.sh
     install -m 755 ${./stop-vnc.sh} "$out"/stop-vnc.sh
@@ -75,8 +54,6 @@ in
     install -m 755 ${./scripts/setup-gpu-env.sh} "$out"/scripts/setup-gpu-env.sh
     install -m 755 ${./scripts/setup-fluxbox.sh} "$out"/scripts/setup-fluxbox.sh
     install -m 755 ${./scripts/start-vnc-server.sh} "$out"/scripts/start-vnc-server.sh
-    install -m 755 ${./scripts/build-app.sh} "$out"/scripts/build-app.sh
-    install -m 755 ${./scripts/launch-app.sh} "$out"/scripts/launch-app.sh
 
     # 6. Config directory
     mkdir -p "$out"/config/fluxbox

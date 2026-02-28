@@ -1,5 +1,5 @@
 {
-  description = "Antigravity with Git support";
+  description = "VNC Browser Environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -89,8 +89,8 @@
     in
     {
       packages.${system}.default = pkgs.symlinkJoin {
-        name = "antigravity-wrapped";
-        paths = [ pkgs.antigravity camoufoxPkg ];
+        name = "vnc-browser-env";
+        paths = [ camoufoxPkg ];
         nativeBuildInputs = [ pkgs.makeWrapper ];
 
         postBuild = ''
@@ -102,6 +102,7 @@
 
           install -m 755 ${googleChromeWrapper} $out/bin/google-chrome
           ln -sf google-chrome $out/bin/xdg-open
+          ln -sf google-chrome $out/bin/browser
 
           for name in google-chrome-stable chromium chromium-browser chrome; do
             ln -sf google-chrome $out/bin/$name
@@ -111,25 +112,7 @@
           install -m 755 ${camoufoxBrowser2Wrapper} $out/bin/camoufox-browser-2
           ln -sf camoufox-browser-1 $out/bin/camoufox1
           ln -sf camoufox-browser-2 $out/bin/camoufox2
-
-          wrapProgram $out/bin/antigravity \
-            --prefix PATH : "$out/bin:${fullPath}" \
-            --set-default SHELL "$out/bin/bash" \
-            --set-default CHROME_PATH "$out/bin/google-chrome" \
-            --set-default CHROME_EXECUTABLE "$out/bin/google-chrome" \
-            --set-default CHROME_BIN "$out/bin/google-chrome" \
-            --set-default BROWSER "$out/bin/google-chrome" \
-            --set VK_ICD_FILENAMES "" \
-            --set LIBVA_DRIVER_NAME "null" \
-            --set MESA_LOADER_DRIVER_OVERRIDE "swrast" \
-            --set GALLIUM_DRIVER "llvmpipe" \
-            --unset XDG_CURRENT_DESKTOP \
-            --unset DESKTOP_SESSION
         '';
-
-        meta = pkgs.antigravity.meta // {
-          mainProgram = "antigravity";
-        };
       };
 
       devShells.${system}.default = pkgs.mkShell {

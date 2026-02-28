@@ -1,13 +1,8 @@
-# Antigravity + Flutter workspace config — copied into generated projects.
-# Dart-only: no firebase-tools, JDK, or Android emulator.
-# See: https://developers.google.com/idx/guides/customize-idx-env
+# VNC + VPN Workspace Environment
 { pkgs, ... }: {
   channel = "unstable";
 
   packages = [
-    # Antigravity VNC infrastructure
-    pkgs.antigravity
-
     pkgs.psmisc
 
     # Fonts
@@ -23,9 +18,11 @@
     pkgs.dbus
     pkgs.tigervnc
     pkgs.fluxbox
+    pkgs.xterm
+    pkgs.xdotool
+    pkgs.xorg.xrdb
     pkgs.python313Packages.websockify
     pkgs.novnc
-    # Utilities (no firebase-tools, no JDK)
     pkgs.unzip
   ];
 
@@ -33,14 +30,12 @@
 
   idx = {
     extensions = [
-      "Dart-Code.flutter"
-      "Dart-Code.dart-code"
       "google.gemini-cli-vscode-ide-companion"
     ];
 
     workspace = {
       onCreate = {
-        default.openFiles = [ ".idx/dev.nix" "README.md" ];
+        default.openFiles = [ "README.md" ];
       };
       onStart = {};
     };
@@ -51,7 +46,7 @@
         web = {
           command = [
             "bash" "-c"
-            "NOVNC_PORT=$PORT ./start-desktop-vpn.sh"
+            "NOVNC_PORT=$PORT ./start-with-vnc.sh"
           ];
           manager = "web";
           env = {

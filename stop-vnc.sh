@@ -8,9 +8,7 @@ source "$SCRIPT_DIR/config.env"
 # shellcheck source=./lib.sh
 source "$SCRIPT_DIR/lib.sh"
 
-echo "🧹 Stopping Antigravity VNC services..."
-
-kill_by_pattern "$APP_PATTERN" 2
+echo "🧹 Stopping VNC Desktop services..."
 
 if [ -f "$PID_FILE" ]; then
     mapfile -t PID_FIELDS < <(tr -s '[:space:]' '\n' < "$PID_FILE")
@@ -18,27 +16,15 @@ if [ -f "$PID_FILE" ]; then
     VNC_PID="${PID_FIELDS[0]:-}"
     FLUXBOX_PID="${PID_FIELDS[1]:-}"
     WEBSOCKIFY_PID="${PID_FIELDS[2]:-}"
+    DBUS_PID="${PID_FIELDS[3]:-}"
+    XRAY_PID="${PID_FIELDS[4]:-}"
 
-    # Support both PID formats:
-    # 6 fields: VNC Fluxbox websockify App DBus Xray
-    # 5 fields: VNC Fluxbox websockify DBus Xray (desktop-only launcher)
-    if [ "${#PID_FIELDS[@]}" -ge 6 ]; then
-        APP_PID="${PID_FIELDS[3]:-}"
-        DBUS_PID="${PID_FIELDS[4]:-}"
-        XRAY_PID="${PID_FIELDS[5]:-}"
-    else
-        APP_PID=""
-        DBUS_PID="${PID_FIELDS[3]:-}"
-        XRAY_PID="${PID_FIELDS[4]:-}"
-    fi
-
-    for pid in "${APP_PID:-}" "${WEBSOCKIFY_PID:-}" "${FLUXBOX_PID:-}" "${VNC_PID:-}" "${DBUS_PID:-}" "${XRAY_PID:-}"; do
+    for pid in "${WEBSOCKIFY_PID:-}" "${FLUXBOX_PID:-}" "${VNC_PID:-}" "${DBUS_PID:-}" "${XRAY_PID:-}"; do
         kill_by_pid "$pid" 1
     done
 fi
 
 SERVICES=(
-    "Antigravity:$APP_PATTERN"
     "websockify:websockify.*${NOVNC_PORT}"
     "Fluxbox:fluxbox"
     "Xvnc:Xvnc :${DISPLAY_NUM}"

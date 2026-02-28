@@ -1,88 +1,50 @@
-# Anti-Flutter Template
+# VNC Desktop + VPN Environment
 
-An [Antigravity](https://github.com/nicolo-ribaudo/antigravity) workspace with a built-in **Project IDX Flutter template** for bootstrapping Flutter projects via `flutter create`.
+A standalone VNC Desktop workspace powered by Nix. Provides a full graphical environment (Fluxbox + Xterm + Chromium + Camoufox) running entirely in the browser using noVNC, with integrated Xray VPN proxy support.
 
-**Dart-only** — no Firebase, JDK, or Android emulator required.
+## Features
 
-<a href="https://idx.google.com/new?template=https://github.com/project-idx/community-templates/tree/main/flutter-create">
-  <img height="32" alt="Try in IDX" src="https://cdn.idx.dev/btn/try_dark_32.svg">
-</a>
+- **NoVNC & Xvnc**: Lightweight web-accessible Linux desktop.
+- **Fluxbox**: Fast and customizable window manager.
+- **Browsers Built-in**: Chromium and Camoufox with pre-configured proxy routing.
+- **Xray VPN Support**: Built-in scripts to tunnel all traffic through Xray (VMess, VLESS, Reality).
+- **Project IDX / NixOS Compatible**: Uses `flake.nix` and `dev.nix` to guarantee a reproducible environment.
 
-## Project Structure
+## Getting Started
 
-```
-├── .idx/
-│   └── dev.nix                  # Antigravity workspace config (VNC, Fluxbox)
-├── config/
-│   ├── Xresources               # XTerm theme
-│   ├── fluxbox/                  # Fluxbox menu/keys/init templates
-│   └── proxychains.conf.template # VPN proxy config template
-├── scripts/
-│   ├── build-app.sh              # Nix build for Antigravity
-│   ├── launch-app.sh             # Launch Antigravity in VNC
-│   ├── setup-dbus.sh             # DBus session setup
-│   ├── setup-fluxbox.sh          # Fluxbox config generation
-│   ├── setup-fonts.sh            # Nix font configuration
-│   ├── setup-gpu-env.sh          # Software rendering for headless
-│   ├── start-vnc-server.sh       # VNC + noVNC + Fluxbox startup
-│   └── update.dart               # Flutter template code-gen
-├── wrappers/
-│   └── google-chrome.sh          # Chrome wrapper w/ proxy support
-├── camoufox/
-│   ├── flake.nix                # External Camoufox package flake
-│   ├── browser-1.sh              # Camoufox wrapper (profile-1)
-│   ├── browser-2.sh              # Camoufox wrapper (profile-2)
-│   └── README.md                 # Notes for dual Camoufox launchers
-├── config.env                    # Shared environment variables
-├── lib.sh                        # Shared bash utilities
-├── flake.nix                     # Nix build definition
-├── justfile                      # Task runner (just start/stop/status)
-├── start-desktop-vpn.sh          # Desktop launcher (VNC + Fluxbox + optional VPN)
-├── start-with-vnc.sh             # Main launcher (VNC + VPN + app)
-├── start-vpn.sh                  # Xray VPN proxy launcher
-├── stop-vnc.sh                   # Stop all services
-├── stop-vpn.sh                   # Stop VPN only
-├── status-vnc.sh                 # Service status check
-├── dev.nix                       # Flutter template runtime (Dart-only)
-├── idx-template.json             # Flutter template UI (~500 samples)
-├── idx-template.nix              # Flutter bootstrap (flutter create)
-├── Makefile                      # Regenerate Flutter samples
-└── v2ray-client*.json.example    # VPN config examples
-```
+1. Set up your environment using Nix or Project IDX.
+2. Run the environment:
+   ```bash
+   just start
+   ```
+3. Open the provided `noVNC` URL in your browser.
 
-## Flutter Template
+## VPN Configuration (Optional)
 
-The Flutter template generates projects with only Dart (web preview):
+To enable transparent proxied networking for your desktop:
 
-| Param | Type | Default | Description |
-|-------|------|---------|-------------|
-| `template` | enum | `app` | `app`, `module`, `package`, `plugin`, `plugin_ffi`, `skeleton` |
-| `sample` | enum | `none` | 500+ Flutter widget samples (auto-generated) |
-| `blank` | boolean | `false` | Skip boilerplate comments (`-e` flag) |
-| `platforms` | text | `web` | Comma-separated: `web,linux,macos,windows` |
-| `org` | text | `com.example` | Organization identifier |
-| `project-name` | text | `my_app` | Project name |
+1. Copy one of the VPN config examples:
+   ```bash
+   cp v2ray-client.json.example v2ray-client.json
+   ```
+2. Edit `v2ray-client.json` with your server details.
+3. Start the environment, it will automatically connect to the VPN and route Chromium/Camoufox traffic through it.
 
-### Regenerate sample list
+## Browser Shortcuts in Fluxbox
+
+- `Ctrl+Alt+B`: Launch Chromium
+- `Ctrl+Alt+1`: Launch Camoufox (Profile 1)
+- `Ctrl+Alt+2`: Launch Camoufox (Profile 2)
+- `Ctrl+Alt+T`: Launch Terminal (XTerm)
+
+## Service Management
+
+You can use the included `justfile` logic or bash scripts:
 
 ```bash
-make update
-```
-
-## Antigravity Services
-
-```bash
-just start    # Launch VNC + Fluxbox + VPN (no app)
-just start-app # Launch VNC + VPN + Antigravity app
+just start    # Launch VNC + Fluxbox + VPN
 just stop     # Stop all services
 just status   # Check service status
 just vpn      # Start VPN only
 just vpn-stop # Stop VPN only
 ```
-
-## Browser Launchers
-
-- `Ctrl+Alt+B` launches Chromium
-- `Ctrl+Alt+1` launches Camoufox profile 1
-- `Ctrl+Alt+2` launches Camoufox profile 2
-- Fluxbox menu includes Chromium + both Camoufox entries

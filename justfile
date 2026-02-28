@@ -1,9 +1,6 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
 start:
-    ./start-desktop-vpn.sh
-
-start-app:
     ./start-with-vnc.sh
 
 stop:

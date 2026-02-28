@@ -1,5 +1,8 @@
-# Generated files
-scripts/assets/samples.json
+# Logs / states
+.vnc-pid
+.vnc-lock
+.vnc-proxy.env
+.dbg-fluxbox.log
 
 # VPN configs (contain secrets)
 v2ray-client.json

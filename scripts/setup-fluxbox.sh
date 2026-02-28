@@ -55,14 +55,13 @@ setup_fluxbox() {
     # Debug log file for menu clicks
     DBGLOG="$HOME/.fluxbox-debug.log"
 
-    # Ensure browser commands exist before the Antigravity build creates symlinks.
     ensure_launcher "$BROWSER_CMD" google-chrome chromium chromium-browser xdg-open || true
     ensure_launcher "$CAMOUFOX_BROWSER1_CMD" camoufox || true
     ensure_launcher "$CAMOUFOX_BROWSER2_CMD" camoufox || true
 
     # ── Menu (heredoc with debug logging) ──
     cat > "$HOME/.fluxbox/menu" <<MENUEOF
-[begin] (Antigravity Desktop)
+[begin] (VNC Desktop)
   [submenu] (Terminal)
     [exec] (XTerm) {echo "\$(date): EXEC xterm | DISPLAY=\$DISPLAY PATH=\$PATH" >> ${DBGLOG}; ${TERMINAL_BIN} -fa "DejaVu Sans Mono" -fs 11 2>> ${DBGLOG}}
     [exec] (XTerm Dark) {echo "\$(date): EXEC xterm-dark" >> ${DBGLOG}; ${TERMINAL_BIN} -bg black -fg white -fa "DejaVu Sans Mono" -fs 11 2>> ${DBGLOG}}
