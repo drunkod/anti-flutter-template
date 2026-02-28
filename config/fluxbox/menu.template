@@ -22,6 +22,10 @@
     [exec] (Camoufox 🔒 VPN) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_PROXY_CMD}}}
     [exec] (Camoufox 🔒 VPN — google.com) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_PROXY_CMD}} https://www.google.com}
     [exec] (Camoufox 🔒 VPN — check IP) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_PROXY_CMD}} https://ifconfig.me}
+    [separator]
+    [exec] (Antigravity) {{{ANTIGRAVITY_CMD}}}
+    [separator]
+    [exec] (Antigravity 🔒 VPN) {{{ANTIGRAVITY_PROXY_CMD}}}
   [end]
   [submenu] (Tools)
     [exec] (File Listing) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'ls -la ~; echo "---"; read -rp "Press Enter..."'}

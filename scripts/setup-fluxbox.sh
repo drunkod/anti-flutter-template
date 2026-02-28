@@ -81,6 +81,22 @@ LAUNCHER
         echo "   ⚠️  Camoufox binary not found, skipping launcher setup"
     fi
 
+    # Create antigravity launcher
+    local antigravity_bin=""
+    if command -v antigravity >/dev/null 2>&1; then
+        antigravity_bin="$(command -v antigravity)"
+    elif [ -x "$SCRIPT_DIR/bin/antigravity" ]; then
+        antigravity_bin="$SCRIPT_DIR/bin/antigravity"
+    fi
+
+    if [ -n "$antigravity_bin" ]; then
+        mkdir -p "$(dirname "$ANTIGRAVITY_CMD")"
+        ln -sf "$antigravity_bin" "$ANTIGRAVITY_CMD"
+        echo "   ✅ Antigravity launcher created → $antigravity_bin"
+    else
+        echo "   ⚠️  Antigravity binary not found, skipping launcher setup"
+    fi
+
     # Create proxy-wrapped launcher for Chromium
     local browser_bin=""
     if [ -x "$BROWSER_CMD" ]; then
@@ -114,6 +130,16 @@ LAUNCHER
         echo "   ✅ Camoufox proxy launcher created"
     fi
 
+    # Create proxy-wrapped launcher for Antigravity
+    if [ -n "$antigravity_bin" ]; then
+        cat > "$ANTIGRAVITY_PROXY_CMD" <<LAUNCHER
+#!/usr/bin/env bash
+exec proxychains4 -f "$PROXYCHAINS_CONF" "$antigravity_bin" "\$@"
+LAUNCHER
+        chmod +x "$ANTIGRAVITY_PROXY_CMD"
+        echo "   ✅ Antigravity proxy launcher created"
+    fi
+
     render_template \
         "$SCRIPT_DIR/config/fluxbox/menu.template" \
         "$HOME/.fluxbox/menu" \
@@ -122,6 +148,8 @@ LAUNCHER
         "CAMOUFOX_BROWSER1_CMD=$CAMOUFOX_BROWSER1_CMD" \
         "CAMOUFOX_BROWSER2_CMD=$CAMOUFOX_BROWSER2_CMD" \
         "CAMOUFOX_PROXY_CMD=$CAMOUFOX_PROXY_CMD" \
+        "ANTIGRAVITY_CMD=$ANTIGRAVITY_CMD" \
+        "ANTIGRAVITY_PROXY_CMD=$ANTIGRAVITY_PROXY_CMD" \
         "SCRIPT_DIR=$SCRIPT_DIR" \
         "SOCKS_PORT=$SOCKS_PORT" \
         "VPN_LOG_FILE=$VPN_LOG_FILE" \
