@@ -47,11 +47,13 @@
     ln -sf ${pkgs.chromium}/bin/chromium "$out"/bin/chromium
 
     # 2b. Build Camoufox from its flake and link binary into $out/bin
-    nix --extra-experimental-features 'nix-command flakes' \
-      build --no-link --print-out-paths "path:${./camoufox}" \
-      | while read -r store_path; do
-          ln -sf "$store_path"/bin/camoufox "$out"/bin/camoufox
-        done
+    camoufox_tmp="$(mktemp -d)"
+    cp -r ${./camoufox}/* "$camoufox_tmp"/
+    chmod -R u+w "$camoufox_tmp"
+    camoufox_store="$(nix --extra-experimental-features 'nix-command flakes' \
+      build --no-link --print-out-paths "path:$camoufox_tmp")"
+    ln -sf "$camoufox_store"/bin/camoufox "$out"/bin/camoufox
+    rm -rf "$camoufox_tmp"
 
     mkdir -p "$out"/.idx
     install -m 644 ${./dev.nix} "$out"/.idx/dev.nix
