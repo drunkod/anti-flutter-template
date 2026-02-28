@@ -12,12 +12,12 @@
   channel = "unstable";
 
   packages = [
-    # pkgs.curl
-    # pkgs.gnutar
-    # pkgs.xz
-    # pkgs.git
-    # pkgs.busybox
-
+    pkgs.curl
+    pkgs.gnutar
+    pkgs.xz
+    pkgs.git
+    pkgs.busybox
+    pkgs.nix 
     # pkgs.tigervnc
     # pkgs.fluxbox
     # pkgs.python313Packages.websockify
@@ -30,11 +30,22 @@
     # pkgs.xorg.xrdb
 
     # Browser dependencies
-    # pkgs.chromium
+    pkgs.chromium
 
   ];
 
   bootstrap = ''
+    # 1. Create Flutter project
+    # flutter create "$out" \
+    #  --template="${template}" \
+    #  --platforms="${platforms}" \
+    #  ${if sample == "none" then "" else "--sample=${sample}"} \
+    #  ${if blank then "-e" else ""}
+
+    # 2. Copy Chromium binary into $out so it's available at runtime
+    mkdir -p "$out"/bin
+    ln -sf ${pkgs.chromium}/bin/chromium "$out"/bin/chromium
+
     mkdir -p "$out"/.idx
     install -m 644 ${./dev.nix} "$out"/.idx/dev.nix
 
