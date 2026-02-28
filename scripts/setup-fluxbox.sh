@@ -81,12 +81,47 @@ LAUNCHER
         echo "   ⚠️  Camoufox binary not found, skipping launcher setup"
     fi
 
+    # Create proxy-wrapped launcher for Chromium
+    local browser_bin=""
+    if [ -x "$BROWSER_CMD" ]; then
+        browser_bin="$BROWSER_CMD"
+    elif command -v chromium >/dev/null 2>&1; then
+        browser_bin="$(command -v chromium)"
+    elif [ -x "$SCRIPT_DIR/bin/chromium" ]; then
+        browser_bin="$SCRIPT_DIR/bin/chromium"
+    fi
+
+    if [ -n "$browser_bin" ]; then
+        cat > "$BROWSER_PROXY_CMD" <<LAUNCHER
+#!/usr/bin/env bash
+exec "$browser_bin" --proxy-server="socks5://127.0.0.1:$SOCKS_PORT" "\$@"
+LAUNCHER
+        chmod +x "$BROWSER_PROXY_CMD"
+        echo "   ✅ Chromium proxy launcher created"
+    fi
+
+    # Create proxy-wrapped launcher for Camoufox
+    if [ -n "$camoufox_bin" ]; then
+        cat > "$CAMOUFOX_PROXY_CMD" <<LAUNCHER
+#!/usr/bin/env bash
+set -euo pipefail
+profile_dir="\${CAMOUFOX_PROXY_PROFILE_DIR:-\$HOME/.camoufox/profile-proxy}"
+mkdir -p "\$profile_dir"
+[ "\$#" -eq 0 ] && set -- "about:blank"
+exec "$camoufox_bin" -no-remote -new-instance -profile "\$profile_dir" "\$@"
+LAUNCHER
+        chmod +x "$CAMOUFOX_PROXY_CMD"
+        echo "   ✅ Camoufox proxy launcher created"
+    fi
+
     render_template \
         "$SCRIPT_DIR/config/fluxbox/menu.template" \
         "$HOME/.fluxbox/menu" \
         "BROWSER_CMD=$BROWSER_CMD" \
+        "BROWSER_PROXY_CMD=$BROWSER_PROXY_CMD" \
         "CAMOUFOX_BROWSER1_CMD=$CAMOUFOX_BROWSER1_CMD" \
         "CAMOUFOX_BROWSER2_CMD=$CAMOUFOX_BROWSER2_CMD" \
+        "CAMOUFOX_PROXY_CMD=$CAMOUFOX_PROXY_CMD" \
         "SCRIPT_DIR=$SCRIPT_DIR" \
         "SOCKS_PORT=$SOCKS_PORT" \
         "VPN_LOG_FILE=$VPN_LOG_FILE" \

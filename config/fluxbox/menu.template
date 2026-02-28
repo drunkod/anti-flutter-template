@@ -10,10 +10,18 @@
     [exec] (Chromium — google.com) {{{BROWSER_CMD}} https://www.google.com}
     [exec] (Chromium — check IP) {{{BROWSER_CMD}} https://ifconfig.me}
     [separator]
+    [exec] (Chromium 🔒 VPN) {{{BROWSER_PROXY_CMD}}}
+    [exec] (Chromium 🔒 VPN — google.com) {{{BROWSER_PROXY_CMD}} https://www.google.com}
+    [exec] (Chromium 🔒 VPN — check IP) {{{BROWSER_PROXY_CMD}} https://ifconfig.me}
+    [separator]
     [exec] (Camoufox #1) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_BROWSER1_CMD}}}
     [exec] (Camoufox #1 — google.com) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_BROWSER1_CMD}} https://www.google.com}
     [exec] (Camoufox #2) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_BROWSER2_CMD}}}
     [exec] (Camoufox #2 — check IP) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_BROWSER2_CMD}} https://ifconfig.me}
+    [separator]
+    [exec] (Camoufox 🔒 VPN) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_PROXY_CMD}}}
+    [exec] (Camoufox 🔒 VPN — google.com) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_PROXY_CMD}} https://www.google.com}
+    [exec] (Camoufox 🔒 VPN — check IP) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_PROXY_CMD}} https://ifconfig.me}
   [end]
   [submenu] (Tools)
     [exec] (File Listing) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'ls -la ~; echo "---"; read -rp "Press Enter..."'}
