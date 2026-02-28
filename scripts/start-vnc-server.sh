@@ -1,3 +1,5 @@
+# Outputs (set as global variables after calling start_vnc_server):
+#   VNC_PID, FLUXBOX_PID, WEBSOCKIFY_PID
 #!/usr/bin/env bash
 
 set -euo pipefail

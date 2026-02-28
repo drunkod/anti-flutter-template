@@ -108,8 +108,14 @@ wait_for_port() {
 
     start="$(date +%s)"
     while true; do
-        if (echo > "/dev/tcp/$host/$port") >/dev/null 2>&1; then
-            return 0
+        if command -v nc >/dev/null 2>&1; then
+            if nc -z -w 1 "$host" "$port" >/dev/null 2>&1; then
+                return 0
+            fi
+        else
+            if (echo > "/dev/tcp/$host/$port") >/dev/null 2>&1; then
+                return 0
+            fi
         fi
 
         if [ "$(( $(date +%s) - start ))" -ge "$timeout_s" ]; then
@@ -156,18 +162,15 @@ render_template() {
         return 1
     fi
 
-    local sed_args=()
-    local key
-    local value
-    local escaped
-    local kv
+    local content
+    content="$(cat "$template")"
 
+    local kv key value
     for kv in "$@"; do
         key="${kv%%=*}"
         value="${kv#*=}"
-        escaped="$(printf '%s' "$value" | sed 's/[\\&]/\\&/g')"
-        sed_args+=("-e" "s|{{${key}}}|${escaped}|g")
+        content="${content//\{\{${key}\}\}/${value}}"
     done
 
-    sed "${sed_args[@]}" "$template" > "$output"
+    printf '%s\n' "$content" > "$output"
 }

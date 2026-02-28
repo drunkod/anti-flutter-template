@@ -16,6 +16,7 @@ source "$SCRIPT_DIR/scripts/setup-gpu-env.sh"
 # shellcheck source=./scripts/setup-fluxbox.sh
 source "$SCRIPT_DIR/scripts/setup-fluxbox.sh"
 # shellcheck source=./scripts/start-vnc-server.sh
+source "$SCRIPT_DIR/scripts/build-env.sh"
 source "$SCRIPT_DIR/scripts/start-vnc-server.sh"
 
 on_error() {
@@ -93,7 +94,14 @@ fi
 echo "============================================"
 
 # Desktop-only PID format: VNC Fluxbox websockify DBus Xray (no app PID).
-echo "$VNC_PID $FLUXBOX_PID $WEBSOCKIFY_PID ${DBUS_PID:-} ${XRAY_PID:-}" > "$PID_FILE"
+cat > "$PID_FILE" <<EOF
+VNC_PID=$VNC_PID
+FLUXBOX_PID=$FLUXBOX_PID
+WEBSOCKIFY_PID=$WEBSOCKIFY_PID
+DBUS_PID=${DBUS_PID:-}
+XRAY_PID=${XRAY_PID:-}
+EOF
+
 
 # Stay alive for cloud IDE previews.
 echo "🔄 Keeping alive (waiting on websockify PID $WEBSOCKIFY_PID)..."

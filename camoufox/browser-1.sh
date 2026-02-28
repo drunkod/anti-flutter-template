@@ -11,6 +11,10 @@ if [ "$#" -eq 0 ]; then
   set -- "about:blank"
 fi
 
+if [ -f "$log_file" ] && [ "$(stat -c%s "$log_file" 2>/dev/null || echo 0)" -gt 10485760 ]; then
+    tail -c 1048576 "$log_file" > "$log_file.tmp" && mv "$log_file.tmp" "$log_file"
+fi
+
 {
   echo "$(date): [camoufox-1] DISPLAY=${DISPLAY:-<unset>} HOME=${HOME:-<unset>}"
   echo "$(date): [camoufox-1] Profile: $profile_dir"

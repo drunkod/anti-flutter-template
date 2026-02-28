@@ -11,15 +11,10 @@ source "$SCRIPT_DIR/lib.sh"
 echo "🧹 Stopping VNC Desktop services..."
 
 if [ -f "$PID_FILE" ]; then
-    mapfile -t PID_FIELDS < <(tr -s '[:space:]' '\n' < "$PID_FILE")
+    # shellcheck disable=SC1090
+    source "$PID_FILE"
 
-    VNC_PID="${PID_FIELDS[0]:-}"
-    FLUXBOX_PID="${PID_FIELDS[1]:-}"
-    WEBSOCKIFY_PID="${PID_FIELDS[2]:-}"
-    DBUS_PID="${PID_FIELDS[3]:-}"
-    XRAY_PID="${PID_FIELDS[4]:-}"
-
-    for pid in "${WEBSOCKIFY_PID:-}" "${FLUXBOX_PID:-}" "${VNC_PID:-}" "${DBUS_PID:-}" "${XRAY_PID:-}"; do
+    for pid in "${WEBSOCKIFY_PID:-}" "${FLUXBOX_PID:-}" "${VNC_PID:-}" "${DBUS_PID:-}"; do
         kill_by_pid "$pid" 1
     done
 fi

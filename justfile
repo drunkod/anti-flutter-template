@@ -9,12 +9,8 @@ stop:
 status:
     ./status-vnc.sh
 
-vpn config="":
-    if [ -n "{{config}}" ]; then
-        ./start-vpn.sh "{{config}}"
-    else
-        ./start-vpn.sh
-    fi
+vpn *args="":
+    ./start-vpn.sh {{args}}
 
 vpn-stop:
     ./stop-vpn.sh
