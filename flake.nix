@@ -70,6 +70,7 @@
         "--disable-accelerated-2d-canvas"
         "--disable-accelerated-video-decode"
         "--disable-breakpad"
+        "--js-flags=--jitless"
       ];
 
       googleChromeWrapper = pkgs.replaceVars ./wrappers/google-chrome.sh {

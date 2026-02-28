@@ -45,6 +45,25 @@ setup_fluxbox() {
 
     ensure_launcher "$BROWSER_CMD" google-chrome chromium chromium-browser xdg-open || true
 
+    # Wrap the browser launcher to always pass CHROMIUM_FLAGS
+    local chromium_bin=""
+    if command -v chromium >/dev/null 2>&1; then
+        chromium_bin="$(command -v chromium)"
+    elif [ -x "$SCRIPT_DIR/bin/chromium" ]; then
+        chromium_bin="$SCRIPT_DIR/bin/chromium"
+    fi
+
+    if [ -n "$chromium_bin" ]; then
+        local flags_str="${CHROMIUM_FLAGS[*]}"
+        mkdir -p "$(dirname "$BROWSER_CMD")"
+        cat > "$BROWSER_CMD" <<LAUNCHER
+#!/usr/bin/env bash
+exec "$chromium_bin" $flags_str "\$@"
+LAUNCHER
+        chmod +x "$BROWSER_CMD"
+        echo "   ✅ Chromium launcher created with flags"
+    fi
+
     # Create camoufox launcher scripts that point to the actual binary.
     # The binary is either in PATH or at $SCRIPT_DIR/bin/camoufox.
     local camoufox_bin=""
@@ -97,20 +116,12 @@ LAUNCHER
         echo "   ⚠️  Antigravity binary not found, skipping launcher setup"
     fi
 
-    # Create proxy-wrapped launcher for Chromium
-    local browser_bin=""
-    if [ -x "$BROWSER_CMD" ]; then
-        browser_bin="$BROWSER_CMD"
-    elif command -v chromium >/dev/null 2>&1; then
-        browser_bin="$(command -v chromium)"
-    elif [ -x "$SCRIPT_DIR/bin/chromium" ]; then
-        browser_bin="$SCRIPT_DIR/bin/chromium"
-    fi
-
-    if [ -n "$browser_bin" ]; then
+    # Create proxy-wrapped launcher for Chromium (reuses chromium_bin from above)
+    if [ -n "$chromium_bin" ]; then
+        local proxy_flags_str="${CHROMIUM_FLAGS[*]}"
         cat > "$BROWSER_PROXY_CMD" <<LAUNCHER
 #!/usr/bin/env bash
-exec "$browser_bin" --proxy-server="socks5://127.0.0.1:$SOCKS_PORT" "\$@"
+exec "$chromium_bin" $proxy_flags_str --proxy-server="socks5://127.0.0.1:$SOCKS_PORT" "\$@"
 LAUNCHER
         chmod +x "$BROWSER_PROXY_CMD"
         echo "   ✅ Chromium proxy launcher created"
