@@ -1,10 +1,11 @@
 # Shared Camoufox derivation builder.
 # Called as: import ./package.nix { inherit pkgs; }
+# Based on a working Firefox-style wrapper layout.
 { pkgs }:
 let
+  lib = pkgs.lib;
   version = "135.0.1-beta.24";
 
-  # Per-system archive mapping
   systemMap = {
     "x86_64-linux" = {
       archSuffix = "lin.x86_64";
@@ -14,123 +15,180 @@ let
       archSuffix = "lin.arm64";
       sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     };
-    "x86_64-darwin" = {
-      archSuffix = "mac.x86_64";
-      sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-    };
-    "aarch64-darwin" = {
-      archSuffix = "mac.arm64";
-      sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-    };
   };
 
   system = pkgs.stdenv.hostPlatform.system;
   info = systemMap.${system} or (throw "Unsupported system: ${system}");
-  isDarwin = pkgs.lib.hasSuffix "darwin" system;
-in
-pkgs.stdenv.mkDerivation rec {
-  pname = "camoufox";
-  inherit version;
 
-  src = pkgs.fetchzip {
-    url = "https://github.com/daijro/camoufox/releases/download/v${version}/camoufox-${version}-${info.archSuffix}.zip";
-    sha256 = info.sha256;
-    stripRoot = false;
-  };
-
-  nativeBuildInputs = [
-    pkgs.jq
-    pkgs.makeWrapper
-  ] ++ pkgs.lib.optionals (!isDarwin) [
-    pkgs.autoPatchelfHook
-    pkgs.wrapGAppsHook3
-    pkgs.lndir
-    pkgs.gtk3
-  ];
-
-  buildInputs = pkgs.lib.optionals (!isDarwin) (with pkgs; [
-    gtk3
+  runtimeLibs = with pkgs; [
+    # Core runtime
+    stdenv.cc.cc.lib
     glib
+    gtk3
     pango
     cairo
     gdk-pixbuf
     atk
-    libxkbcommon
-    stdenv.cc.cc.lib
-    alsa-lib
-    gsettings-desktop-schemas
-    fontconfig
-    libglvnd
     at-spi2-atk
+    at-spi2-core
+    libxkbcommon
     dbus
-    librsvg
+    alsa-lib
+    fontconfig
+    freetype
+    libglvnd
+    libdrm
+    nss
+    nspr
+
+    # Browser integration / runtime features
+    libnotify
+    cups
+    pciutils
+    vulkan-loader
+    libva
+    libgbm
+    pipewire
+    libpulseaudio
+    libcanberra-gtk3
+
+    # X11 / desktop libs
     xorg.libX11
     xorg.libXcomposite
     xorg.libXdamage
+    xorg.libXext
     xorg.libXfixes
     xorg.libXrandr
     xorg.libXrender
     xorg.libXtst
+    xorg.libxcb
     xorg.libXcursor
     xorg.libXi
-    xorg.libXext
-    xorg.libxcb
-    mesa
-    libpulseaudio
-    pipewire
-    ffmpeg
-  ]);
-
-  dontWrapGApps = true;
-
-  installPhase = ''
-    runHook preInstall
-
-    mkdir -p $out/lib/${pname}
-    cp -r ./* $out/lib/${pname}/
-    chmod +x $out/lib/${pname}/camoufox-bin || true
-
-    mkdir -p $out/bin
-
-    # Create a wrapper that sets the Firefox app directory correctly
-    makeWrapper $out/lib/${pname}/camoufox-bin $out/bin/camoufox-bin \
-      --set MOZ_APP_LAUNCHER camoufox \
-      --set GDK_BACKEND x11 \
-      --prefix LD_LIBRARY_PATH : "$out/lib/${pname}" \
-      --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath buildInputs}" \
-      "''${gappsWrapperArgs[@]}"
-
-    # Wrapper for the camoufox launcher script (if it exists and is a script)
-    if [ -f $out/lib/${pname}/camoufox ] && file $out/lib/${pname}/camoufox | grep -q "script"; then
-      makeWrapper $out/lib/${pname}/camoufox $out/bin/camoufox \
-        --set MOZ_APP_LAUNCHER camoufox \
-        --set GDK_BACKEND x11 \
-        --prefix LD_LIBRARY_PATH : "$out/lib/${pname}" \
-        --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath buildInputs}" \
-        "''${gappsWrapperArgs[@]}"
-    else
-      # If camoufox is a binary, wrap it too
-      makeWrapper $out/lib/${pname}/camoufox $out/bin/camoufox \
-        --set MOZ_APP_LAUNCHER camoufox \
-        --set GDK_BACKEND x11 \
-        --prefix LD_LIBRARY_PATH : "$out/lib/${pname}" \
-        --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath buildInputs}" \
-        "''${gappsWrapperArgs[@]}"
-    fi
-
-    runHook postInstall
-  '';
-
-  gappsWrapperArgs = pkgs.lib.optionals (!isDarwin) [
-    "--prefix XDG_DATA_DIRS : ${pkgs.gsettings-desktop-schemas}/share"
-    "--prefix XDG_DATA_DIRS : ${pkgs.gtk3}/share"
+    xorg.libXinerama
   ];
 
-  meta = with pkgs.lib; {
-    description = "A stealthy, minimalistic, custom build of Firefox for web scraping";
-    homepage = "https://github.com/daijro/camoufox";
-    license = licenses.mit;
-    platforms = builtins.attrNames systemMap;
+  runtimeLibPath = lib.makeLibraryPath runtimeLibs;
+  runtimeBinPath = lib.makeBinPath [ pkgs.xdg-utils ];
+  xdgDataPath =
+    "${pkgs.adwaita-icon-theme}/share:"
+    + "${pkgs.gsettings-desktop-schemas}/share:"
+    + "${pkgs.gtk3}/share";
+
+  camoufox-unwrapped = pkgs.stdenvNoCC.mkDerivation rec {
+    pname = "camoufox-unwrapped";
+    inherit version;
+
+    src = pkgs.fetchzip {
+      url = "https://github.com/daijro/camoufox/releases/download/v${version}/camoufox-${version}-${info.archSuffix}.zip";
+      sha256 = info.sha256;
+      stripRoot = false;
+    };
+
+    nativeBuildInputs = [
+      pkgs.jq
+      pkgs.patchelf
+    ];
+
+    dontBuild = true;
+    dontStrip = true;
+    dontPatchELF = true;
+
+    installPhase = ''
+      runHook preInstall
+
+      mkdir -p "$out/lib/camoufox"
+      cp -a ./. "$out/lib/camoufox/"
+
+      # Camoufox ships strict anti-network policies that can leave Firefox
+      # with no valid default search engine in desktop/manual usage.
+      if [ -f "$out/lib/camoufox/distribution/policies.json" ]; then
+        tmp_policies="$(mktemp)"
+        jq '
+          if .policies then
+            .policies |= (
+              del(.SearchEngines)
+              | if (.Extensions and .Extensions.Uninstall) then
+                  .Extensions.Uninstall |= map(select(test("@search\\.mozilla\\.org$") | not))
+                else
+                  .
+                end
+            )
+          else
+            .
+          end
+        ' "$out/lib/camoufox/distribution/policies.json" > "$tmp_policies"
+        mv "$tmp_policies" "$out/lib/camoufox/distribution/policies.json"
+      fi
+
+      if [ -f "$out/lib/camoufox/camoufox.cfg" ]; then
+        sed -i 's|"browser.newtabpage.activity-stream.asrouter.providers.snippets", ""|"browser.newtabpage.activity-stream.asrouter.providers.snippets", "{}"|' "$out/lib/camoufox/camoufox.cfg"
+      fi
+
+      chmod +x "$out/lib/camoufox/camoufox"
+      chmod +x "$out/lib/camoufox/camoufox-bin"
+
+      # Camoufox releases may omit glxtest; Firefox expects it for GPU probing.
+      if [ ! -e "$out/lib/camoufox/glxtest" ]; then
+        ln -s ${pkgs.firefox-unwrapped}/lib/firefox/glxtest "$out/lib/camoufox/glxtest"
+      fi
+
+      # Patch only ELF interpreters; keep bundled libs unmodified.
+      patchelf --set-interpreter ${pkgs.stdenv.cc.bintools.dynamicLinker} "$out/lib/camoufox/camoufox"
+      patchelf --set-interpreter ${pkgs.stdenv.cc.bintools.dynamicLinker} "$out/lib/camoufox/camoufox-bin"
+
+      runHook postInstall
+    '';
+
+    meta = with lib; {
+      description = "A stealthy, minimalistic, custom build of Firefox for web scraping";
+      homepage = "https://github.com/daijro/camoufox";
+      license = licenses.mit;
+      platforms = builtins.attrNames systemMap;
+      mainProgram = "camoufox";
+    };
+  };
+
+in
+pkgs.stdenvNoCC.mkDerivation rec {
+  pname = "camoufox";
+  inherit version;
+
+  nativeBuildInputs = [ pkgs.makeWrapper ];
+
+  dontUnpack = true;
+  dontBuild = true;
+
+  buildCommand = ''
+    mkdir -p "$out/bin" "$out/lib"
+    ln -s ${camoufox-unwrapped}/lib/camoufox "$out/lib/camoufox"
+
+    makeWrapper ${camoufox-unwrapped}/lib/camoufox/camoufox "$out/bin/camoufox" \
+      --prefix LD_LIBRARY_PATH : "${runtimeLibPath}:${camoufox-unwrapped}/lib/camoufox" \
+      --suffix PATH : "${runtimeBinPath}" \
+      --suffix XDG_DATA_DIRS : "${xdgDataPath}" \
+      --set MOZ_APP_LAUNCHER camoufox \
+      --set MOZ_LEGACY_PROFILES 1 \
+      --set MOZ_ALLOW_DOWNGRADE 1 \
+      --set-default MOZ_ENABLE_WAYLAND 1 \
+      --set-default LIBGL_ALWAYS_SOFTWARE 1 \
+      --set-default MOZ_WEBRENDER 0 \
+      --set-default MOZ_ACCELERATED 0 \
+      --set-default GDK_DISABLE_GL 1
+
+    makeWrapper ${camoufox-unwrapped}/lib/camoufox/camoufox-bin "$out/bin/camoufox-bin" \
+      --prefix LD_LIBRARY_PATH : "${runtimeLibPath}:${camoufox-unwrapped}/lib/camoufox" \
+      --set-default LIBGL_ALWAYS_SOFTWARE 1 \
+      --set-default MOZ_WEBRENDER 0 \
+      --set-default MOZ_ACCELERATED 0 \
+      --set-default GDK_DISABLE_GL 1
+  '';
+
+  passthru = {
+    unwrapped = camoufox-unwrapped;
+  };
+
+  meta = camoufox-unwrapped.meta // {
+    description = "Camoufox browser wrapped with Nix runtime environment";
     mainProgram = "camoufox";
   };
 }
