@@ -13,6 +13,8 @@ source "$SCRIPT_DIR/scripts/setup-fonts.sh"
 source "$SCRIPT_DIR/scripts/setup-dbus.sh"
 # shellcheck source=./scripts/setup-gpu-env.sh
 source "$SCRIPT_DIR/scripts/setup-gpu-env.sh"
+# shellcheck source=./scripts/setup-launchers.sh
+source "$SCRIPT_DIR/scripts/setup-launchers.sh"
 # shellcheck source=./scripts/setup-fluxbox.sh
 source "$SCRIPT_DIR/scripts/setup-fluxbox.sh"
 # shellcheck source=./scripts/setup-xdg.sh
@@ -29,7 +31,6 @@ trap 'on_error "$LINENO"' ERR
 
 export DISPLAY=":$DISPLAY_NUM"
 export NIXPKGS_ALLOW_UNFREE=1
-export BROWSER="$BROWSER_CMD"
 export PATH="$SCRIPT_DIR/bin:$HOME/.local/bin:$PATH"
 
 echo "============================================"
@@ -81,6 +82,7 @@ else
     echo "ℹ️  No VPN config found. Proceeding with direct connection."
 fi
 
+setup_launchers
 setup_fluxbox
 setup_xdg
 start_vnc_server

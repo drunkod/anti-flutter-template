@@ -100,7 +100,7 @@ done
 log_info "Testing proxy connection"
 test_vpn_connection "$SOCKS_PORT" || log_warn "Proxy connectivity test failed"
 
-write_proxy_env "$SOCKS_PORT" "$HTTP_PORT" "$PROXY_ENV_FILE"
+export_proxy_vars "$SOCKS_PORT" "$HTTP_PORT" "$PROXY_ENV_FILE"
 
 echo ""
 echo "============================================"

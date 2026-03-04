@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Renders Fluxbox config files (menu, keys, init, startup, Xresources, proxychains).
+# Requires setup_launchers to have run first (so CMD variables are populated).
 
 set -euo pipefail
 
@@ -10,147 +12,9 @@ source "$SCRIPT_DIR/config.env"
 # shellcheck source=../lib.sh
 source "$SCRIPT_DIR/lib.sh"
 
-ensure_launcher() {
-    local target="$1"
-    shift
-    local cmd
-    local found=false
-
-    for cmd in "$@"; do
-        if command -v "$cmd" >/dev/null 2>&1; then
-            mkdir -p "$(dirname "$target")"
-            ln -sf "$(command -v "$cmd")" "$target"
-            found=true
-            break
-        elif [ -x "$SCRIPT_DIR/bin/$cmd" ]; then
-            mkdir -p "$(dirname "$target")"
-            ln -sf "$SCRIPT_DIR/bin/$cmd" "$target"
-            found=true
-            break
-        fi
-    done
-
-    if [ "$found" = false ]; then
-        echo "⚠️  Could not find any of: $* for $target"
-        return 1
-    fi
-}
-
 setup_fluxbox() {
     echo "🖥️  Configuring Fluxbox..."
     mkdir -p "$HOME/.fluxbox"
-
-    TERMINAL_BIN="$(command -v xterm 2>/dev/null || echo "xterm")"
-    SHELL_BIN="$(command -v bash 2>/dev/null || echo "/bin/sh")"
-
-    ensure_launcher "$BROWSER_CMD" google-chrome chromium chromium-browser xdg-open || true
-
-    # Wrap the browser launcher to always pass CHROMIUM_FLAGS
-    local chromium_bin=""
-    if command -v chromium >/dev/null 2>&1; then
-        chromium_bin="$(command -v chromium)"
-    elif [ -x "$SCRIPT_DIR/bin/chromium" ]; then
-        chromium_bin="$SCRIPT_DIR/bin/chromium"
-    fi
-
-    if [ -n "$chromium_bin" ]; then
-        local flags_str="${CHROMIUM_FLAGS[*]}"
-        mkdir -p "$(dirname "$BROWSER_CMD")"
-        rm -f "$BROWSER_CMD"
-        cat > "$BROWSER_CMD" <<LAUNCHER
-#!/usr/bin/env bash
-exec "$chromium_bin" $flags_str "\$@"
-LAUNCHER
-        chmod +x "$BROWSER_CMD"
-        echo "   ✅ Chromium launcher created with flags"
-    fi
-
-    # Create camoufox launcher scripts that point to the actual binary.
-    # The binary is either in PATH or at $SCRIPT_DIR/bin/camoufox.
-    local camoufox_bin=""
-    if command -v camoufox >/dev/null 2>&1; then
-        camoufox_bin="$(command -v camoufox)"
-    elif [ -x "$SCRIPT_DIR/bin/camoufox" ]; then
-        camoufox_bin="$SCRIPT_DIR/bin/camoufox"
-    fi
-
-    if [ -n "$camoufox_bin" ]; then
-        mkdir -p "$(dirname "$CAMOUFOX_BROWSER1_CMD")"
-
-        cat > "$CAMOUFOX_BROWSER1_CMD" <<LAUNCHER
-#!/usr/bin/env bash
-set -euo pipefail
-profile_dir="\${CAMOUFOX_PROFILE_1_DIR:-\$HOME/.camoufox/profile-1}"
-mkdir -p "\$profile_dir"
-[ "\$#" -eq 0 ] && set -- "about:blank"
-exec "$camoufox_bin" -no-remote -new-instance -profile "\$profile_dir" "\$@"
-LAUNCHER
-        chmod +x "$CAMOUFOX_BROWSER1_CMD"
-
-        cat > "$CAMOUFOX_BROWSER2_CMD" <<LAUNCHER
-#!/usr/bin/env bash
-set -euo pipefail
-profile_dir="\${CAMOUFOX_PROFILE_2_DIR:-\$HOME/.camoufox/profile-2}"
-mkdir -p "\$profile_dir"
-[ "\$#" -eq 0 ] && set -- "about:blank"
-exec "$camoufox_bin" -no-remote -new-instance -profile "\$profile_dir" "\$@"
-LAUNCHER
-        chmod +x "$CAMOUFOX_BROWSER2_CMD"
-        echo "   ✅ Camoufox launchers created → $camoufox_bin"
-    else
-        echo "   ⚠️  Camoufox binary not found, skipping launcher setup"
-    fi
-
-    # Create antigravity launcher
-    local antigravity_bin=""
-    if command -v antigravity >/dev/null 2>&1; then
-        antigravity_bin="$(command -v antigravity)"
-    elif [ -x "$SCRIPT_DIR/bin/antigravity" ]; then
-        antigravity_bin="$SCRIPT_DIR/bin/antigravity"
-    fi
-
-    if [ -n "$antigravity_bin" ]; then
-        mkdir -p "$(dirname "$ANTIGRAVITY_CMD")"
-        ln -sf "$antigravity_bin" "$ANTIGRAVITY_CMD"
-        echo "   ✅ Antigravity launcher created → $antigravity_bin"
-    else
-        echo "   ⚠️  Antigravity binary not found, skipping launcher setup"
-    fi
-
-    # Create proxy-wrapped launcher for Chromium (reuses chromium_bin from above)
-    if [ -n "$chromium_bin" ]; then
-        local proxy_flags_str="${CHROMIUM_FLAGS[*]}"
-        cat > "$BROWSER_PROXY_CMD" <<LAUNCHER
-#!/usr/bin/env bash
-exec "$chromium_bin" $proxy_flags_str --proxy-server="socks5://127.0.0.1:$SOCKS_PORT" "\$@"
-LAUNCHER
-        chmod +x "$BROWSER_PROXY_CMD"
-        echo "   ✅ Chromium proxy launcher created"
-    fi
-
-    # Create proxy-wrapped launcher for Camoufox
-    if [ -n "$camoufox_bin" ]; then
-        cat > "$CAMOUFOX_PROXY_CMD" <<LAUNCHER
-#!/usr/bin/env bash
-set -euo pipefail
-profile_dir="\${CAMOUFOX_PROXY_PROFILE_DIR:-\$HOME/.camoufox/profile-proxy}"
-mkdir -p "\$profile_dir"
-[ "\$#" -eq 0 ] && set -- "about:blank"
-exec "$camoufox_bin" -no-remote -new-instance -profile "\$profile_dir" "\$@"
-LAUNCHER
-        chmod +x "$CAMOUFOX_PROXY_CMD"
-        echo "   ✅ Camoufox proxy launcher created"
-    fi
-
-    # Create proxy-wrapped launcher for Antigravity
-    if [ -n "$antigravity_bin" ]; then
-        cat > "$ANTIGRAVITY_PROXY_CMD" <<LAUNCHER
-#!/usr/bin/env bash
-exec proxychains4 -f "$PROXYCHAINS_CONF" "$antigravity_bin" "\$@"
-LAUNCHER
-        chmod +x "$ANTIGRAVITY_PROXY_CMD"
-        echo "   ✅ Antigravity proxy launcher created"
-    fi
 
     render_template \
         "$SCRIPT_DIR/config/fluxbox/menu.template" \
@@ -174,22 +38,16 @@ LAUNCHER
         "CAMOUFOX_BROWSER1_CMD=$CAMOUFOX_BROWSER1_CMD" \
         "CAMOUFOX_BROWSER2_CMD=$CAMOUFOX_BROWSER2_CMD"
 
-    # init is static — just copy it
-    cp "$SCRIPT_DIR/config/fluxbox/init" "$HOME/.fluxbox/init"
-
-    # startup script
+    cp     "$SCRIPT_DIR/config/fluxbox/init"    "$HOME/.fluxbox/init"
     install -m 755 "$SCRIPT_DIR/config/fluxbox/startup" "$HOME/.fluxbox/startup"
+    cp     "$SCRIPT_DIR/config/Xresources"      "$HOME/.Xresources"
 
-    # Xresources
-    cp "$SCRIPT_DIR/config/Xresources" "$HOME/.Xresources"
-
-    # Proxychains
     render_template \
         "$SCRIPT_DIR/config/proxychains.conf.template" \
         "$PROXYCHAINS_CONF" \
         "SOCKS_PORT=$SOCKS_PORT"
 
-    echo "   ✅ Fluxbox menu, keys, and theme configured"
+    echo "   ✅ Fluxbox configured"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
