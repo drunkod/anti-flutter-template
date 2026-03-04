@@ -60,22 +60,8 @@ start_vnc_server() {
 
     # Auto-launch an xterm so the user has a terminal immediately
     echo "📟 Auto-launching XTerm..."
-    # Try known monospace fonts installed via dev.nix, then fc-match, then "fixed"
-    local xterm_font=""
-    if command -v fc-list >/dev/null 2>&1; then
-        local candidate
-        for candidate in "DejaVu Sans Mono" "Liberation Mono" "Noto Sans Mono"; do
-            if fc-list :"$candidate" 2>/dev/null | grep -qi mono; then
-                xterm_font="$candidate"; break
-            fi
-        done
-    fi
-    if [ -z "$xterm_font" ] && command -v fc-match >/dev/null 2>&1; then
-        # fc-match may return "Family1,Family2"; take only the first
-        xterm_font="$(fc-match --format='%{family}' ':spacing=100' 2>/dev/null | cut -d, -f1)"
-    fi
-    xterm_font="${xterm_font:-fixed}"
-    DISPLAY=":$DISPLAY_NUM" xterm -fa "$xterm_font" -fs 11 -bg black -fg white -geometry 100x30+50+50 &
+    # Font is configured via Xresources (XTerm*faceName), loaded by xrdb above
+    DISPLAY=":$DISPLAY_NUM" xterm -bg black -fg white -geometry 100x30+50+50 &
     XTERM_PID=$!
     sleep 1
     if kill -0 "$XTERM_PID" 2>/dev/null; then
