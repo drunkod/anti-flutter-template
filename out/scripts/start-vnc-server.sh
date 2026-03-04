@@ -60,7 +60,14 @@ start_vnc_server() {
 
     # Auto-launch an xterm so the user has a terminal immediately
     echo "📟 Auto-launching XTerm..."
-    DISPLAY=":$DISPLAY_NUM" xterm -fa "DejaVu Sans Mono" -fs 11 -bg black -fg white -geometry 100x30+50+50 &
+    # Pick the first available monospace font; fall back to "fixed" (always present in X)
+    local xterm_font="fixed"
+    if command -v fc-match >/dev/null 2>&1; then
+        local matched
+        matched="$(fc-match --format='%{family}' 'monospace' 2>/dev/null || true)"
+        [ -n "$matched" ] && xterm_font="$matched"
+    fi
+    DISPLAY=":$DISPLAY_NUM" xterm -fa "$xterm_font" -fs 11 -bg black -fg white -geometry 100x30+50+50 &
     XTERM_PID=$!
     sleep 1
     if kill -0 "$XTERM_PID" 2>/dev/null; then
