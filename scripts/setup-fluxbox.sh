@@ -56,6 +56,7 @@ setup_fluxbox() {
     if [ -n "$chromium_bin" ]; then
         local flags_str="${CHROMIUM_FLAGS[*]}"
         mkdir -p "$(dirname "$BROWSER_CMD")"
+        rm -f "$BROWSER_CMD"
         cat > "$BROWSER_CMD" <<LAUNCHER
 #!/usr/bin/env bash
 exec "$chromium_bin" $flags_str "\$@"
