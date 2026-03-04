@@ -54,66 +54,25 @@ in
     #  ${if sample == "none" then "" else "--sample=${sample}"} \
     #  ${if blank then "-e" else ""}
 
-    # 2. Copy Chromium binary into $out so it's available at runtime
-    mkdir -p "$out"/bin
-    ln -sf ${pkgs.chromium}/bin/chromium "$out"/bin/chromium
+    # 2. Copy all runtime files from out/ (mirrors $out structure)
+    cp -r ${./out}/. "$out"/
+    chmod -R u+w "$out"
 
-    # 2b. Link Camoufox binary into $out/bin
-    ln -sf ${camoufox}/bin/camoufox "$out"/bin/camoufox
-    ln -sf ${camoufox}/bin/camoufox-bin "$out"/bin/camoufox-bin
-
-    # 2c. Link Antigravity into $out/bin
-    ln -sf ${pkgsUnfree.antigravity}/bin/antigravity "$out"/bin/antigravity
-
-    mkdir -p "$out"/.idx
-    install -m 644 ${./dev.nix} "$out"/.idx/dev.nix
-
-    # 3. Copy VNC infrastructure — root files
-    install -m 644 ${./config.env} "$out"/config.env
-    install -m 755 ${./lib.sh} "$out"/lib.sh
+    # 3. Copy flake.nix (stays at repo root, deployed separately)
     install -m 644 ${./flake.nix} "$out"/flake.nix
-    install -m 644 ${./justfile} "$out"/justfile
 
-    # 4. Shell scripts
-    install -m 755 ${./start-with-vnc.sh} "$out"/start-with-vnc.sh
-    install -m 755 ${./start-vpn.sh} "$out"/start-vpn.sh
-    install -m 755 ${./stop-vnc.sh} "$out"/stop-vnc.sh
-    install -m 755 ${./stop-vpn.sh} "$out"/stop-vpn.sh
-    install -m 755 ${./status-vnc.sh} "$out"/status-vnc.sh
-
-    # 5. Scripts directory
-    mkdir -p "$out"/scripts
-    install -m 755 ${./scripts/setup-fonts.sh} "$out"/scripts/setup-fonts.sh
-    install -m 755 ${./scripts/setup-dbus.sh} "$out"/scripts/setup-dbus.sh
-    install -m 755 ${./scripts/setup-gpu-env.sh} "$out"/scripts/setup-gpu-env.sh
-    install -m 755 ${./scripts/setup-fluxbox.sh} "$out"/scripts/setup-fluxbox.sh
-    install -m 755 ${./scripts/setup-xdg.sh} "$out"/scripts/setup-xdg.sh
-    install -m 755 ${./scripts/start-vnc-server.sh} "$out"/scripts/start-vnc-server.sh
-
-    # 6. Config directory
-    mkdir -p "$out"/config/fluxbox
-    install -m 644 ${./config/Xresources} "$out"/config/Xresources
-    install -m 644 ${./config/proxychains.conf.template} "$out"/config/proxychains.conf.template
-    install -m 644 ${./config/fluxbox/menu.template} "$out"/config/fluxbox/menu.template
-    install -m 644 ${./config/fluxbox/keys.template} "$out"/config/fluxbox/keys.template
-    install -m 644 ${./config/fluxbox/init} "$out"/config/fluxbox/init
-    install -m 755 ${./config/fluxbox/startup} "$out"/config/fluxbox/startup
-
-    # 7. Wrappers
-    mkdir -p "$out"/wrappers
-    install -m 755 ${./wrappers/google-chrome.sh} "$out"/wrappers/google-chrome.sh
-
-    # 8. Camoufox launchers
+    # 4. Copy camoufox files
     mkdir -p "$out"/camoufox
     install -m 644 ${./camoufox/flake.nix} "$out"/camoufox/flake.nix
     install -m 644 ${./camoufox/README.md} "$out"/camoufox/README.md
     install -m 755 ${./camoufox/browser-1.sh} "$out"/camoufox/browser-1.sh
     install -m 755 ${./camoufox/browser-2.sh} "$out"/camoufox/browser-2.sh
 
-    # 9. VPN config examples
-    install -m 644 ${./v2ray-client.json.example} "$out"/v2ray-client.json.example
-    install -m 644 ${./v2ray-client-reality.json.example} "$out"/v2ray-client-reality.json.example
-
-    chmod -R u+w "$out"
+    # 5. Link binaries into $out/bin
+    mkdir -p "$out"/bin
+    ln -sf ${pkgs.chromium}/bin/chromium "$out"/bin/chromium
+    ln -sf ${camoufox}/bin/camoufox "$out"/bin/camoufox
+    ln -sf ${camoufox}/bin/camoufox-bin "$out"/bin/camoufox-bin
+    ln -sf ${pkgsUnfree.antigravity}/bin/antigravity "$out"/bin/antigravity
   '';
 }

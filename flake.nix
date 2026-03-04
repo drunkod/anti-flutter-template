@@ -73,7 +73,7 @@
         "--js-flags=--jitless"
       ];
 
-      googleChromeWrapper = pkgs.replaceVars ./wrappers/google-chrome.sh {
+      googleChromeWrapper = pkgs.replaceVars ./out/wrappers/google-chrome.sh {
         chromium = "${pkgs.chromium}/bin/chromium";
         inherit chromiumFlags;
       };
