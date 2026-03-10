@@ -21,6 +21,12 @@
       "default": "false"
     },
     {
+      "id": "antigravity",
+      "name": "Enable Antigravity (stealth browser)",
+      "type": "boolean",
+      "default": "false"
+    },
+    {
       "id": "warp",
       "name": "Enable WARP VPN",
       "type": "boolean",

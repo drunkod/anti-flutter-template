@@ -7,15 +7,16 @@
 , blank ? false
 , platforms ? "web"
 , camoufox ? false
+, antigravity ? false
 , warp ? false
 , ...
 }:
 let
   # Re-import nixpkgs with allowUnfree for proprietary packages (e.g. antigravity)
-  pkgsUnfree = import pkgs.path {
+  pkgsUnfree = if antigravity then import pkgs.path {
     inherit (pkgs) system;
     config.allowUnfree = true;
-  };
+  } else null;
 
   # Build Camoufox from the shared package definition (only when enabled)
   camoufoxPkg = if camoufox then import ./camoufox/package.nix { inherit pkgs; } else null;
@@ -63,7 +64,9 @@ in
       ln -sf ${camoufoxPkg}/bin/camoufox "$out"/bin/camoufox
       ln -sf ${camoufoxPkg}/bin/camoufox-bin "$out"/bin/camoufox-bin
     '' else ""}
-    ln -sf ${pkgsUnfree.antigravity}/bin/antigravity "$out"/bin/antigravity
+    ${if antigravity then ''
+      ln -sf ${pkgsUnfree.antigravity}/bin/antigravity "$out"/bin/antigravity
+    '' else ""}
 
     # 6. WARP VPN binaries (only when warp is enabled)
     ${if warp then ''
