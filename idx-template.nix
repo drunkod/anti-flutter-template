@@ -6,7 +6,7 @@
 , template ? "app"
 , blank ? false
 , platforms ? "web"
-, camoufox ? true
+, camoufox ? false
 , warp ? false
 , ...
 }:

@@ -18,7 +18,7 @@
       "id": "camoufox",
       "name": "Enable Camoufox (anti-detect browser)",
       "type": "boolean",
-      "default": "true"
+      "default": "false"
     },
     {
       "id": "warp",
