@@ -131,6 +131,13 @@ start_warp() {
         log_warn "Could not reach internet through WARP proxy"
     fi
 
+    # Write proxy env file so other scripts can source it
+    cat > "$WARP_PROXY_ENV_FILE" <<WARPEOF
+export WARP_SOCKS_PROXY="socks5h://127.0.0.1:$WARP_SOCKS_PORT"
+export WARP_SOCKS_PORT="$WARP_SOCKS_PORT"
+WARPEOF
+    chmod 600 "$WARP_PROXY_ENV_FILE"
+
     echo ""
     echo "============================================"
     echo "✅ WARP VPN is RUNNING"
@@ -139,6 +146,7 @@ start_warp() {
     echo "   wireproxy PID: $wpid"
     echo "   SOCKS5 Proxy:  127.0.0.1:$WARP_SOCKS_PORT"
     echo "   Log file:      $WIREPROXY_LOG_FILE"
+    echo "   Env file:      $WARP_PROXY_ENV_FILE"
     echo ""
     echo "   Usage:"
     echo "     curl --proxy socks5h://127.0.0.1:$WARP_SOCKS_PORT https://ifconfig.me"
@@ -157,7 +165,7 @@ stop_warp() {
         fi
     fi
 
-    rm -f "$WIREPROXY_PID_FILE"
+    rm -f "$WIREPROXY_PID_FILE" "$WARP_PROXY_ENV_FILE"
     kill_by_pattern "wireproxy" 1
 
     echo ""

@@ -21,14 +21,19 @@ setup_fluxbox() {
         "$HOME/.fluxbox/menu" \
         "BROWSER_CMD=$BROWSER_CMD" \
         "BROWSER_PROXY_CMD=$BROWSER_PROXY_CMD" \
+        "BROWSER_WARP_CMD=$BROWSER_WARP_CMD" \
         "CAMOUFOX_BROWSER1_CMD=$CAMOUFOX_BROWSER1_CMD" \
         "CAMOUFOX_BROWSER2_CMD=$CAMOUFOX_BROWSER2_CMD" \
         "CAMOUFOX_PROXY_CMD=$CAMOUFOX_PROXY_CMD" \
+        "CAMOUFOX_WARP_CMD=$CAMOUFOX_WARP_CMD" \
         "ANTIGRAVITY_CMD=$ANTIGRAVITY_CMD" \
         "ANTIGRAVITY_PROXY_CMD=$ANTIGRAVITY_PROXY_CMD" \
+        "ANTIGRAVITY_WARP_CMD=$ANTIGRAVITY_WARP_CMD" \
         "SCRIPT_DIR=$SCRIPT_DIR" \
         "SOCKS_PORT=$SOCKS_PORT" \
+        "WARP_SOCKS_PORT=$WARP_SOCKS_PORT" \
         "VPN_LOG_FILE=$VPN_LOG_FILE" \
+        "WIREPROXY_LOG_FILE=$WIREPROXY_LOG_FILE" \
         "LOG_FILE=$LOG_FILE"
 
     render_template \
@@ -46,6 +51,11 @@ setup_fluxbox() {
         "$SCRIPT_DIR/config/proxychains.conf.template" \
         "$PROXYCHAINS_CONF" \
         "SOCKS_PORT=$SOCKS_PORT"
+
+    render_template \
+        "$SCRIPT_DIR/config/proxychains-warp.conf.template" \
+        "$PROXYCHAINS_WARP_CONF" \
+        "WARP_SOCKS_PORT=$WARP_SOCKS_PORT"
 
     echo "   ✅ Fluxbox configured"
 }

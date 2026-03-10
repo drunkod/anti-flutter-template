@@ -82,6 +82,25 @@ else
     echo "ℹ️  No VPN config found. Proceeding with direct connection."
 fi
 
+# ── WARP VPN (wireproxy) ─────────────────────────────────────────────────
+WARP_ENABLED=false
+WIREPROXY_PID=""
+if [ -f "$SCRIPT_DIR/.warp-enabled" ]; then
+    echo ""
+    echo "🌐 Starting WARP VPN (wireproxy)..."
+    if "$SCRIPT_DIR/scripts/start-warp.sh" start; then
+        WARP_ENABLED=true
+        WIREPROXY_PID="$(cat "$WIREPROXY_PID_FILE" 2>/dev/null || true)"
+        if [ -f "$WARP_PROXY_ENV_FILE" ]; then
+            echo "   ✅ WARP proxy environment written to $WARP_PROXY_ENV_FILE"
+        fi
+    else
+        echo "   ⚠️  WARP failed to start, continuing without WARP"
+    fi
+else
+    echo "ℹ️  WARP not enabled (.warp-enabled not found)."
+fi
+
 setup_launchers
 setup_fluxbox
 setup_xdg
@@ -97,15 +116,20 @@ if [ "$VPN_ENABLED" = true ]; then
     echo "🔐 VPN: ACTIVE (all traffic routed through proxy)"
     echo "   SOCKS5: 127.0.0.1:$SOCKS_PORT | HTTP: 127.0.0.1:$HTTP_PORT"
 fi
+if [ "$WARP_ENABLED" = true ]; then
+    echo ""
+    echo "🌐 WARP: ACTIVE (SOCKS5 on 127.0.0.1:$WARP_SOCKS_PORT)"
+fi
 echo "============================================"
 
-# Desktop-only PID format: VNC Fluxbox websockify DBus Xray (no app PID).
+# Desktop-only PID format: VNC Fluxbox websockify DBus Xray Wireproxy.
 cat > "$PID_FILE" <<EOF
 VNC_PID=$VNC_PID
 FLUXBOX_PID=$FLUXBOX_PID
 WEBSOCKIFY_PID=$WEBSOCKIFY_PID
 DBUS_PID=${DBUS_PID:-}
 XRAY_PID=${XRAY_PID:-}
+WIREPROXY_PID=${WIREPROXY_PID:-}
 EOF
 
 

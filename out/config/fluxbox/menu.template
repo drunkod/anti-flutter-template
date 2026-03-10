@@ -27,6 +27,23 @@
     [separator]
     [exec] (Antigravity 🔒 VPN) {{{ANTIGRAVITY_PROXY_CMD}}}
   [end]
+  [submenu] (WARP Proxy)
+    [exec] (Chromium 🌐 WARP) {{{BROWSER_WARP_CMD}}}
+    [exec] (Chromium 🌐 WARP — google.com) {{{BROWSER_WARP_CMD}} https://www.google.com}
+    [exec] (Chromium 🌐 WARP — check IP) {{{BROWSER_WARP_CMD}} https://ifconfig.me}
+    [separator]
+    [exec] (Camoufox 🌐 WARP) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_WARP_CMD}}}
+    [exec] (Camoufox 🌐 WARP — google.com) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_WARP_CMD}} https://www.google.com}
+    [exec] (Camoufox 🌐 WARP — check IP) {FLUXBOX_DEBUG_LOG=~/.fluxbox-debug.log {{CAMOUFOX_WARP_CMD}} https://ifconfig.me}
+    [separator]
+    [exec] (Antigravity 🌐 WARP) {{{ANTIGRAVITY_WARP_CMD}}}
+    [separator]
+    [exec] (Start WARP) {xterm -fa "DejaVu Sans Mono" -fs 11 -hold -e bash -lc 'cd {{SCRIPT_DIR}} && bash scripts/start-warp.sh start'}
+    [exec] (Stop WARP) {xterm -fa "DejaVu Sans Mono" -fs 11 -hold -e bash -lc 'cd {{SCRIPT_DIR}} && bash scripts/start-warp.sh stop'}
+    [exec] (WARP Status) {xterm -fa "DejaVu Sans Mono" -fs 11 -hold -e bash -lc 'cd {{SCRIPT_DIR}} && bash scripts/start-warp.sh status'}
+    [exec] (Check WARP IP) {xterm -fa "DejaVu Sans Mono" -fs 11 -hold -e bash -lc 'echo "=== WARP IP ==="; curl -s --connect-timeout 5 --proxy socks5h://127.0.0.1:{{WARP_SOCKS_PORT}} https://ifconfig.me 2>/dev/null || echo FAILED; echo; echo "=== Direct IP ==="; env -u http_proxy -u https_proxy -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY curl -s --connect-timeout 5 https://ifconfig.me 2>/dev/null || echo FAILED; echo'}
+    [exec] (WARP Log) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'tail -50f {{WIREPROXY_LOG_FILE}}'}
+  [end]
   [submenu] (Tools)
     [exec] (File Listing) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'ls -la ~; echo "---"; read -rp "Press Enter..."'}
     [exec] (Disk Usage) {xterm -fa "DejaVu Sans Mono" -fs 11 -e bash -lc 'df -h; echo "---"; read -rp "Press Enter..."'}

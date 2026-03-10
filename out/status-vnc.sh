@@ -39,6 +39,13 @@ if show_process "Xray VPN" "xray run"; then
 fi
 echo ""
 
+echo "🌐 WARP Status:"
+WARP_RUNNING=false
+if show_process "wireproxy" "wireproxy"; then
+    WARP_RUNNING=true
+fi
+echo ""
+
 if [ "$XRAY_RUNNING" = true ]; then
     echo "🌍 VPN Connection Test:"
     test_vpn_connection "$SOCKS_PORT" || true
@@ -58,12 +65,27 @@ if [ "$XRAY_RUNNING" = true ]; then
     echo ""
 fi
 
+if [ "$WARP_RUNNING" = true ]; then
+    echo "🌍 WARP Connection Test:"
+    test_vpn_connection "$WARP_SOCKS_PORT" || true
+    echo ""
+
+    echo "🔧 WARP Proxy Settings:"
+    echo "   SOCKS5: 127.0.0.1:$WARP_SOCKS_PORT"
+    if [ -f "$WARP_PROXY_ENV_FILE" ]; then
+        echo "   env file: $WARP_PROXY_ENV_FILE ✅"
+    else
+        echo "   env file: missing"
+    fi
+    echo ""
+fi
+
 if [ -f "$PID_FILE" ]; then
     # shellcheck disable=SC1090
     source "$PID_FILE"
 
     echo "📄 PID File Contents:"
-    echo "   VNC: ${VNC_PID:-?} | Fluxbox: ${FLUXBOX_PID:-?} | websockify: ${WEBSOCKIFY_PID:-?} | DBus: ${DBUS_PID:-N/A} | Xray: ${XRAY_PID:-N/A}"
+    echo "   VNC: ${VNC_PID:-?} | Fluxbox: ${FLUXBOX_PID:-?} | websockify: ${WEBSOCKIFY_PID:-?} | DBus: ${DBUS_PID:-N/A} | Xray: ${XRAY_PID:-N/A} | wireproxy: ${WIREPROXY_PID:-N/A}"
     echo ""
 
     echo "📋 PID Status:"
@@ -72,7 +94,8 @@ if [ -f "$PID_FILE" ]; then
         "Fluxbox:${FLUXBOX_PID:-}" \
         "websockify:${WEBSOCKIFY_PID:-}" \
         "DBus:${DBUS_PID:-}" \
-        "Xray:${XRAY_PID:-}"; do
+        "Xray:${XRAY_PID:-}" \
+        "wireproxy:${WIREPROXY_PID:-}"; do
         name="${name_pid%%:*}"
         pid="${name_pid##*:}"
 
@@ -92,6 +115,12 @@ echo ""
 if [ -f "$VPN_LOG_FILE" ] && [ "$XRAY_RUNNING" = true ]; then
     echo "🔐 VPN log (last 5 lines):"
     tail -5 "$VPN_LOG_FILE" | sed 's/^/   /'
+    echo ""
+fi
+
+if [ -f "$WIREPROXY_LOG_FILE" ] && [ "$WARP_RUNNING" = true ]; then
+    echo "🌐 WARP log (last 5 lines):"
+    tail -5 "$WIREPROXY_LOG_FILE" | sed 's/^/   /'
     echo ""
 fi
 

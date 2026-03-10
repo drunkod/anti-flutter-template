@@ -108,6 +108,49 @@ LAUNCHER
     else
         echo "   ⚠️  Antigravity binary not found, skipping"
     fi
+
+    # ── WARP proxy launchers (use WARP_SOCKS_PORT) ────────────────────────────
+    if [ -n "$chromium_bin" ]; then
+        rm -f "$BROWSER_WARP_CMD"
+        cat > "$BROWSER_WARP_CMD" <<LAUNCHER
+#!/usr/bin/env bash
+flags=(
+$flags_array_literal
+)
+exec "$chromium_bin" "\${flags[@]}" --proxy-server="socks5://127.0.0.1:$WARP_SOCKS_PORT" "\$@"
+LAUNCHER
+        chmod +x "$BROWSER_WARP_CMD"
+    fi
+
+    if [ -n "$camoufox_bin" ]; then
+        cat > "$CAMOUFOX_WARP_CMD" <<LAUNCHER
+#!/usr/bin/env bash
+set -euo pipefail
+profile_dir="\${CAMOUFOX_WARP_PROFILE_DIR:-\$HOME/.camoufox/profile-warp}"
+mkdir -p "\$profile_dir"
+[ "\$#" -eq 0 ] && set -- "about:blank"
+exec "$camoufox_bin" -no-remote -new-instance -profile "\$profile_dir" \
+    --proxy-server="socks5://127.0.0.1:$WARP_SOCKS_PORT" "\$@"
+LAUNCHER
+        chmod +x "$CAMOUFOX_WARP_CMD"
+    fi
+
+    if [ -n "$antigravity_bin" ]; then
+        cat > "$ANTIGRAVITY_WARP_CMD" <<LAUNCHER
+#!/usr/bin/env bash
+exec proxychains4 -f "$PROXYCHAINS_WARP_CONF" "$antigravity_bin" "\$@"
+LAUNCHER
+        chmod +x "$ANTIGRAVITY_WARP_CMD"
+    fi
+
+    # Count how many WARP launchers were created
+    local warp_count=0
+    [ -x "${BROWSER_WARP_CMD:-}" ] && warp_count=$((warp_count + 1))
+    [ -x "${CAMOUFOX_WARP_CMD:-}" ] && warp_count=$((warp_count + 1))
+    [ -x "${ANTIGRAVITY_WARP_CMD:-}" ] && warp_count=$((warp_count + 1))
+    if [ "$warp_count" -gt 0 ]; then
+        echo "   ✅ WARP launchers created ($warp_count)"
+    fi
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
