@@ -961,6 +961,12 @@
       "name": "Platforms",
       "type": "text",
       "default": "web"
+    },
+    {
+      "id": "warp",
+      "name": "Enable WARP VPN",
+      "type": "boolean",
+      "default": "false"
     }
   ]
 }

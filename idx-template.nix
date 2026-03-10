@@ -6,6 +6,7 @@
 , template ? "app"
 , blank ? false
 , platforms ? "web"
+, warp ? false
 , ...
 }:
 let
@@ -44,6 +45,10 @@ in
 
     pkgsUnfree.antigravity
 
+    # WARP VPN
+    pkgs.wgcf
+    pkgs.wireproxy
+
   ];
 
   bootstrap = ''
@@ -74,5 +79,36 @@ in
     ln -sf ${camoufox}/bin/camoufox "$out"/bin/camoufox
     ln -sf ${camoufox}/bin/camoufox-bin "$out"/bin/camoufox-bin
     ln -sf ${pkgsUnfree.antigravity}/bin/antigravity "$out"/bin/antigravity
+
+    # 6. WARP VPN binaries
+    ln -sf ${pkgs.wgcf}/bin/wgcf "$out"/bin/wgcf
+    ln -sf ${pkgs.wireproxy}/bin/wireproxy "$out"/bin/wireproxy
+
+    # 7. WARP setup: register account and generate wireproxy config
+    ${if warp then ''
+      echo "🌐 Setting up Cloudflare WARP..."
+      mkdir -p "$out"/warp
+      pushd "$out"/warp > /dev/null
+
+      if [ ! -f wgcf-account.toml ]; then
+        echo "  📝 Registering WARP account..."
+        ${pkgs.wgcf}/bin/wgcf register --accept-tos
+      fi
+
+      if [ ! -f wgcf-profile.conf ]; then
+        echo "  🔑 Generating WireGuard profile..."
+        ${pkgs.wgcf}/bin/wgcf generate
+      fi
+
+      echo "  ⚙️  Creating wireproxy.conf..."
+      cp wgcf-profile.conf wireproxy.conf
+      if ! grep -q '^\[Socks5\]' wireproxy.conf; then
+        printf '\n[Socks5]\nBindAddress = 127.0.0.1:40000\n' >> wireproxy.conf
+      fi
+
+      popd > /dev/null
+      touch "$out"/.warp-enabled
+      echo "  ✅ WARP config ready in warp/"
+    '' else ""}
   '';
 }

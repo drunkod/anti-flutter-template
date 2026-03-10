@@ -14,3 +14,9 @@ vpn *args="":
 
 vpn-stop:
     ./stop-vpn.sh
+
+warp *args="":
+    ./scripts/start-warp.sh {{args}}
+
+warp-stop:
+    ./scripts/start-warp.sh stop

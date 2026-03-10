@@ -24,6 +24,10 @@
     pkgs.python313Packages.websockify
     pkgs.novnc
     pkgs.unzip
+
+    # WARP VPN
+    pkgs.wgcf
+    pkgs.wireproxy
   ];
 
   env = {};
@@ -37,7 +41,9 @@
       onCreate = {
         default.openFiles = [ "README.md" ];
       };
-      onStart = {};
+      onStart = {
+        startWarp = "if [ -f .warp-enabled ]; then ./scripts/start-warp.sh start; fi";
+      };
     };
 
     previews = {
