@@ -28,7 +28,6 @@ in
     pkgs.xz
     pkgs.git
     pkgs.busybox
-    pkgs.nix 
     # pkgs.tigervnc
     # pkgs.fluxbox
     # pkgs.python313Packages.websockify
@@ -79,9 +78,11 @@ in
     ln -sf ${camoufox}/bin/camoufox-bin "$out"/bin/camoufox-bin
     ln -sf ${pkgsUnfree.antigravity}/bin/antigravity "$out"/bin/antigravity
 
-    # 6. WARP VPN binaries
-    ln -sf ${pkgs.wgcf}/bin/wgcf "$out"/bin/wgcf
-    ln -sf ${pkgs.wireproxy}/bin/wireproxy "$out"/bin/wireproxy
+    # 6. WARP VPN binaries (only when warp is enabled)
+    ${if warp then ''
+      ln -sf ${pkgs.wgcf}/bin/wgcf "$out"/bin/wgcf
+      ln -sf ${pkgs.wireproxy}/bin/wireproxy "$out"/bin/wireproxy
+    '' else ""}
 
     # 7. Generate dev.nix from Jinja2 template (conditionally includes WARP packages/hooks)
     mkdir -p "$out"/.idx
