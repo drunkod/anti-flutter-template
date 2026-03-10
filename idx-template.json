@@ -22,7 +22,7 @@
     },
     {
       "id": "antigravity",
-      "name": "Enable Antigravity (stealth browser)",
+      "name": "Enable Antigravity (ide)",
       "type": "boolean",
       "default": "false"
     },

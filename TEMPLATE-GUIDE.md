@@ -36,10 +36,10 @@ Firebase Studio clones the repo and reads `idx-template.json`.
 
 | Parameter | Type | UI Element | Default |
 |-----------|------|-----------|---------|
-| `template` | `enum` | Dropdown (App, Module, Package, Plugin...) | `app` |
-| `sample` | `enum` | Dropdown (900+ Flutter widget samples) | `none` |
-| `blank` | `boolean` | Checkbox ("Empty") | `false` |
 | `platforms` | `text` | Text field | `web` |
+| `camoufox` | `boolean` | Checkbox ("Enable Camoufox") | `false` |
+| `antigravity` | `boolean` | Checkbox ("Enable Antigravity") | `false` |
+| `warp` | `boolean` | Checkbox ("Enable WARP VPN") | `false` |
 
 **Key detail:** `"host": { "virtualization": true }` requests a **VM-backed workspace** instead of a container. This gives the kernel access needed to run an X server (Xvnc).
 
@@ -52,24 +52,28 @@ The user fills in the form and clicks **"Create"**.
 Firebase passes the user's parameter values into the Nix function:
 
 ```nix
-{ pkgs, sample ? "none", template ? "app", blank ? false, platforms ? "web", ... }:
+{ pkgs, sample ? "none", template ? "app", blank ? false, platforms ? "web",
+  camoufox ? false, antigravity ? false, warp ? false, ... }:
 ```
 
-### 2a. Prepare Dependencies
+### 2a. Prepare Dependencies (Conditional)
 
 ```nix
-pkgsUnfree = import pkgs.path {
+# Only imported when antigravity=true (avoids unfree overlay otherwise)
+pkgsUnfree = if antigravity then import pkgs.path {
   inherit (pkgs) system;
-  config.allowUnfree = true;    # Needed for antigravity
-};
+  config.allowUnfree = true;
+} else null;
 
-camoufox = import ./camoufox/package.nix { inherit pkgs; };
+# Only built when camoufox=true
+camoufoxPkg = if camoufox then import ./camoufox/package.nix { inherit pkgs; } else null;
 ```
 
-The Nix sandbox downloads and builds:
-- **Chromium** (from nixpkgs)
-- **Camoufox** (fetched from GitHub releases, patched with `patchelf`, wrapped with `makeWrapper`)
-- **Antigravity** (unfree package)
+The Nix sandbox downloads and builds only what's needed:
+- **Chromium** (from nixpkgs) — always
+- **Camoufox** (fetched from GitHub releases, patched with `patchelf`, wrapped with `makeWrapper`) — only if `camoufox=true`
+- **Antigravity** (unfree package) — only if `antigravity=true`
+- **wgcf + wireproxy** (Cloudflare WARP tools) — only if `warp=true`
 
 ### 2b. Bootstrap Script Runs
 
@@ -81,14 +85,14 @@ The `flutter create` command is **commented out** — it never runs:
 #  --platforms="${platforms}" ...
 ```
 
-Instead, 5 operations build the workspace:
+Instead, 8 operations build the workspace:
 
 **Operation 1 — Copy runtime files:**
 ```bash
 cp -r ${./out}/. "$out"/
 chmod -R u+w "$out"
 ```
-Everything in `out/` (scripts, configs, justfile, dev.nix, VPN examples) becomes the workspace root.
+Everything in `out/` (scripts, configs, justfile, VPN examples) becomes the workspace root.
 
 **Operation 2 — Copy flake.nix:**
 ```bash
@@ -96,7 +100,7 @@ install -m 644 ${./flake.nix} "$out"/flake.nix
 ```
 The runtime Nix flake that builds browser wrappers.
 
-**Operation 3 — Copy camoufox sub-flake:**
+**Operation 3 — Copy camoufox sub-flake** (only when `camoufox=true`):
 ```bash
 mkdir -p "$out"/camoufox
 install -m 644 ${./camoufox/flake.nix} "$out"/camoufox/flake.nix
@@ -104,25 +108,49 @@ install -m 755 ${./camoufox/browser-1.sh} "$out"/camoufox/browser-1.sh
 install -m 755 ${./camoufox/browser-2.sh} "$out"/camoufox/browser-2.sh
 ```
 
-**Operation 4 — Symlink binaries:**
+**Operation 4 — Symlink binaries** (conditional):
 ```bash
 mkdir -p "$out"/bin
-ln -sf ${pkgs.chromium}/bin/chromium "$out"/bin/chromium
-ln -sf ${camoufox}/bin/camoufox "$out"/bin/camoufox
-ln -sf ${camoufox}/bin/camoufox-bin "$out"/bin/camoufox-bin
+ln -sf ${pkgs.chromium}/bin/chromium "$out"/bin/chromium          # always
+# if camoufox=true:
+ln -sf ${camoufoxPkg}/bin/camoufox "$out"/bin/camoufox
+ln -sf ${camoufoxPkg}/bin/camoufox-bin "$out"/bin/camoufox-bin
+# if antigravity=true:
 ln -sf ${pkgsUnfree.antigravity}/bin/antigravity "$out"/bin/antigravity
+# if warp=true:
+ln -sf ${pkgs.wgcf}/bin/wgcf "$out"/bin/wgcf
+ln -sf ${pkgs.wireproxy}/bin/wireproxy "$out"/bin/wireproxy
 ```
 These Nix store symlinks make the binaries available at `./bin/` in the workspace, without needing them in `dev.nix` packages.
+
+**Operation 5 — Generate `dev.nix` from Jinja2 template:**
+```bash
+warp=${if warp then "true" else "false"} j2 devNix.j2 -o "$out"/.idx/dev.nix
+nixfmt "$out"/.idx/dev.nix
+```
+`devNix.j2` uses Jinja2 conditionals (`{% if warp == "true" %}`) to include WARP-specific packages (`pkgs.wgcf`, `pkgs.wireproxy`) and an `onStart` hook that auto-starts wireproxy. This follows the same pattern as the official Astro template.
+
+**Operation 6 — WARP setup** (only when `warp=true`):
+```bash
+mkdir -p "$out"/warp
+wgcf register --accept-tos     # Register free WARP account
+wgcf generate                  # Generate WireGuard profile
+cp wgcf-profile.conf wireproxy.conf
+# Append [Socks5] section → SOCKS5 on 127.0.0.1:40000
+```
+This runs during bootstrap so the WARP account is ready immediately.
 
 ### 2c. Result
 
 `$out` now contains a complete workspace directory. Firebase Studio creates the workspace from it.
 
+> **Note:** `dev.nix` is no longer a static file in the repo — it is generated dynamically from `devNix.j2` at bootstrap time.
+
 ---
 
-## Step 3: Workspace Environment Activates (`out/.idx/dev.nix`)
+## Step 3: Workspace Environment Activates (generated `dev.nix`)
 
-Firebase Studio reads `.idx/dev.nix` to configure the running environment:
+Firebase Studio reads `.idx/dev.nix` (generated from `devNix.j2`) to configure the running environment:
 
 ### 3a. Runtime Packages Installed
 
@@ -140,20 +168,26 @@ packages = [
   pkgs.xorg.xrdb         # X resource database
   pkgs.fontconfig pkgs.dejavu_fonts pkgs.liberation_ttf pkgs.noto-fonts
   pkgs.wget pkgs.unzip pkgs.psmisc
+  # When warp=true, also includes:
+  # pkgs.wgcf pkgs.wireproxy
 ];
 ```
 
 These are **workspace-runtime** packages — different from the bootstrap-only packages in `idx-template.nix`.
 
-### 3b. `onCreate` Hook
+### 3b. Hooks
 
 ```nix
 onCreate = {
   default.openFiles = [ "README.md" ];
 };
+# When warp=true, also includes:
+# onStart = {
+#   startWarp = "./scripts/start-warp.sh start";
+# };
 ```
 
-Opens the README in the editor when the workspace is first created.
+`onCreate` opens the README when the workspace is first created. When WARP is enabled, `onStart` auto-starts wireproxy on every workspace boot.
 
 ### 3c. Web Preview Configured
 
@@ -265,6 +299,24 @@ fi
 
 **If no config exists:** skips VPN, continues with direct connection.
 
+### 4g-bis. WARP VPN (Conditional)
+
+```bash
+if [ -f "$WARP_DIR/wireproxy.conf" ]; then
+    "$SCRIPT_DIR/scripts/start-warp.sh" start
+fi
+```
+
+**If `warp/wireproxy.conf` exists** (created during bootstrap when `warp=true`):
+
+1. Runs `setup_warp()` — verifies `wgcf`/`wireproxy` binaries, ensures account + profile exist
+2. Runs `start_warp()` — launches `wireproxy` in background
+3. Waits for SOCKS5 port 40000
+4. Tests connectivity through the WARP proxy
+5. Writes `~/.warp-proxy.env` with `WARP_SOCKS_PROXY` and `WARP_SOCKS_PORT`
+
+**If no wireproxy.conf exists:** skips WARP, continues normally. Both Xray and WARP can run simultaneously (on different ports).
+
 ### 4h. `setup_launchers` → Generate Browser Scripts
 
 Creates executable scripts in `~/.local/bin/`:
@@ -276,9 +328,14 @@ flags=( --no-sandbox --disable-gpu ... )  # 15 flags from config.env
 exec /nix/store/.../chromium "${flags[@]}" "$@"
 ```
 
-**Chromium via VPN** (`~/.local/bin/browser-proxy`):
+**Chromium via Xray VPN** (`~/.local/bin/browser-proxy`):
 ```bash
 exec chromium "${flags[@]}" --proxy-server="socks5://127.0.0.1:10808" "$@"
+```
+
+**Chromium via WARP** (`~/.local/bin/browser-warp`):
+```bash
+exec chromium "${flags[@]}" --proxy-server="socks5://127.0.0.1:40000" "$@"
 ```
 
 **Camoufox #1** (`~/.local/bin/camoufox-browser-1`):
@@ -290,9 +347,15 @@ exec camoufox -no-remote -new-instance -profile "$profile_dir" "$@"
 
 **Camoufox #2** — same but `profile-2` (allows parallel instances).
 
-**Camoufox VPN** — adds `--proxy-server=socks5://127.0.0.1:10808`.
+**Camoufox Xray VPN** — adds `--proxy-server=socks5://127.0.0.1:10808`.
 
-**Antigravity** — direct symlink + proxy version via `proxychains4`.
+**Camoufox WARP** (`~/.local/bin/camoufox-warp`) — uses `profile-warp`, adds `--proxy-server=socks5://127.0.0.1:40000`.
+
+**Antigravity** — direct symlink + Xray proxy version via `proxychains4`.
+
+**Antigravity WARP** (`~/.local/bin/antigravity-warp`) — routes through `proxychains4 -f ~/.proxychains-warp.conf`.
+
+WARP launchers are only created when the corresponding binary (chromium, camoufox, antigravity) is found.
 
 ### 4i. `setup_fluxbox` → Render Desktop Config
 
@@ -301,8 +364,12 @@ Uses `render_template()` to replace `{{placeholders}}` with actual paths:
 ```
 config/fluxbox/menu.template  →  ~/.fluxbox/menu
    {{BROWSER_CMD}}           →  /home/user/.local/bin/browser
+   {{BROWSER_WARP_CMD}}      →  /home/user/.local/bin/browser-warp
    {{CAMOUFOX_BROWSER1_CMD}} →  /home/user/.local/bin/camoufox-browser-1
+   {{CAMOUFOX_WARP_CMD}}     →  /home/user/.local/bin/camoufox-warp
+   {{ANTIGRAVITY_WARP_CMD}}  →  /home/user/.local/bin/antigravity-warp
    {{SOCKS_PORT}}            →  10808
+   {{WARP_SOCKS_PORT}}       →  40000
    ...
 
 config/fluxbox/keys.template →  ~/.fluxbox/keys
@@ -311,6 +378,9 @@ config/fluxbox/keys.template →  ~/.fluxbox/keys
 
 config/proxychains.conf.template → ~/.proxychains.conf
    {{SOCKS_PORT}}            →  10808
+
+config/proxychains-warp.conf.template → ~/.proxychains-warp.conf
+   {{WARP_SOCKS_PORT}}       →  40000
 ```
 
 Also copies `init` (Fluxbox settings), `startup` (autostart), and `Xresources` (XTerm theme).
@@ -365,12 +435,13 @@ FLUXBOX_PID=...
 WEBSOCKIFY_PID=...
 DBUS_PID=...
 XRAY_PID=...
+WIREPROXY_PID=...
 EOF
 
 wait $WEBSOCKIFY_PID
 ```
 
-The `wait` keeps the preview process alive. If websockify dies, the preview stops.
+The PID file now includes `WIREPROXY_PID` (empty if WARP not active). The `wait` keeps the preview process alive. If websockify dies, the preview stops.
 
 ---
 
@@ -388,17 +459,21 @@ This is the noVNC web client connecting to Xvnc through websockify. The user see
 - An **XTerm** terminal window already open
 - **Right-click menu** with:
   - Terminal variants (dark, large, login shell)
-  - Chromium (direct + VPN)
-  - Camoufox #1 / #2 (direct + VPN)
-  - Antigravity (direct + VPN)
+  - Chromium (direct + Xray VPN)
+  - Camoufox #1 / #2 (direct + Xray VPN)
+  - Antigravity (direct + Xray VPN)
+  - **WARP Proxy** submenu:
+    - Chromium / Camoufox / Antigravity via WARP
+    - Start / Stop / Status WARP
+    - WARP IP Check and log viewer
   - System tools (files, disk, processes, network)
   - VPN status/logs
 
 ---
 
-## Step 6: VPN Usage (Optional)
+## Step 6: Xray VPN Usage (Optional)
 
-If the user wants VPN:
+If the user wants Xray VPN:
 
 1. Copy an example config:
    ```bash
@@ -414,12 +489,29 @@ If the user wants VPN:
 
 4. `start-with-vnc.sh` detects the config file and runs `start-vpn.sh` automatically
 
-5. All "VPN" menu entries now route through the Xray SOCKS5 proxy
+5. All "VPN" menu entries now route through the Xray SOCKS5 proxy (:10808)
 
 The VPN routing rules ensure **local traffic bypasses the proxy**:
 - `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`
 - VNC ports `5900`, `5999`
 - `*.cloudworkstations.dev` (the workstation itself)
+
+---
+
+## Step 7: WARP VPN Usage (Optional)
+
+If the template was created with `warp=true`:
+
+- **Automatic**: WARP registers with Cloudflare and generates `wireproxy.conf` during bootstrap. On every start, `wireproxy` launches automatically — no user configuration needed.
+- **Management via justfile**:
+  ```bash
+  just warp          # start / restart WARP
+  just warp status   # check WARP connectivity
+  just warp-stop     # stop wireproxy
+  ```
+- **Management via desktop menu**: Right-click → WARP Proxy → Start / Stop / Status
+- **Browser routing**: All "WARP" menu entries route through `socks5://127.0.0.1:40000`
+- **Coexists with Xray**: Xray (:10808/:10809) and WARP (:40000) run on separate ports — both can be active simultaneously
 
 ---
 
@@ -445,10 +537,14 @@ Fluxbox (window manager)
     │
     ├── XTerm (terminal)
     ├── Chromium ──→ direct internet
-    │                or ──→ Xray SOCKS5 (:10808) ──→ VPN server ──→ internet
+    │            ──→ Xray SOCKS5 (:10808) ──→ VPN server ──→ internet
+    │            ──→ WARP SOCKS5 (:40000) ──→ Cloudflare WARP ──→ internet
     ├── Camoufox ──→ direct internet
-    │                or ──→ Xray SOCKS5 (:10808) ──→ VPN server ──→ internet
-    └── Antigravity ──→ proxychains4 ──→ Xray SOCKS5 ──→ VPN server ──→ internet
+    │            ──→ Xray SOCKS5 (:10808) ──→ VPN server ──→ internet
+    │            ──→ WARP SOCKS5 (:40000) ──→ Cloudflare WARP ──→ internet
+    ├── Antigravity ──→ proxychains4 ──→ Xray SOCKS5 ──→ VPN server ──→ internet
+    │               ──→ proxychains4 ──→ WARP SOCKS5 ──→ Cloudflare WARP ──→ internet
+    └── wireproxy (WARP) ──→ WireGuard tunnel ──→ Cloudflare edge ──→ internet
 ```
 
 ---
@@ -457,15 +553,18 @@ Fluxbox (window manager)
 
 | File | Runs | Purpose |
 |------|------|---------|
-| `idx-template.json` | Template selection UI | Displays fake Flutter params; requests VM host |
-| `idx-template.nix` | Once at workspace creation | Copies files + symlinks binaries into `$out` |
-| `out/.idx/dev.nix` | Every workspace boot | Installs VNC/WM/browser packages; configures preview |
+| `idx-template.json` | Template selection UI | Displays params (platforms, camoufox, antigravity, warp) |
+| `idx-template.nix` | Once at workspace creation | Copies files, conditional symlinks, renders `devNix.j2` |
+| `devNix.j2` | Bootstrap (rendered to `.idx/dev.nix`) | Jinja2 template; conditionally includes WARP packages |
+| `out/.idx/dev.nix` | Every workspace boot (generated) | Installs VNC/WM/browser packages; configures preview |
 | `flake.nix` | On `nix build` (manual) | Builds wrapped browser commands with proxy detection |
 | `config.env` | Every `start-with-vnc.sh` run | Single source of truth for all ports, paths, flags |
 | `lib.sh` | Sourced by all scripts | Logging, process mgmt, proxy helpers, template renderer |
-| `start-with-vnc.sh` | Preview start (via dev.nix) | Master orchestrator: VPN → launchers → Fluxbox → VNC |
+| `start-with-vnc.sh` | Preview start (via dev.nix) | Master orchestrator: VPN → WARP → launchers → Fluxbox → VNC |
 | `scripts/setup-*.sh` | Sourced by orchestrator | Modular setup functions |
 | `scripts/start-vnc-server.sh` | Sourced by orchestrator | Launches Xvnc + Fluxbox + XTerm + websockify |
-| `start-vpn.sh` | If VPN config exists | Starts Xray, tests connectivity, exports proxy vars |
-| `stop-vnc.sh` | `just stop` or error handler | Kills all PIDs, cleans up state files |
+| `start-vpn.sh` | If Xray VPN config exists | Starts Xray, tests connectivity, exports proxy vars |
+| `scripts/start-warp.sh` | If `wireproxy.conf` exists | Manages wireproxy lifecycle (start/stop/status) |
+| `config/proxychains-warp.conf.template` | Rendered by `setup_fluxbox` | proxychains4 config pointing to WARP SOCKS5 (:40000) |
+| `stop-vnc.sh` | `just stop` or error handler | Kills all PIDs (incl. wireproxy), cleans up state |
 | `camoufox/package.nix` | Nix build time | Fetches Camoufox binary, patches ELF, wraps with libs |
