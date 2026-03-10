@@ -85,7 +85,7 @@ fi
 # ── WARP VPN (wireproxy) ─────────────────────────────────────────────────
 WARP_ENABLED=false
 WIREPROXY_PID=""
-if [ -f "$SCRIPT_DIR/.warp-enabled" ]; then
+if [ -f "$WARP_DIR/wireproxy.conf" ]; then
     echo ""
     echo "🌐 Starting WARP VPN (wireproxy)..."
     if "$SCRIPT_DIR/scripts/start-warp.sh" start; then
@@ -98,7 +98,7 @@ if [ -f "$SCRIPT_DIR/.warp-enabled" ]; then
         echo "   ⚠️  WARP failed to start, continuing without WARP"
     fi
 else
-    echo "ℹ️  WARP not enabled (.warp-enabled not found)."
+    echo "ℹ️  WARP not configured (no wireproxy.conf found)."
 fi
 
 setup_launchers

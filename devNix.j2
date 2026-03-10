@@ -1,4 +1,5 @@
 # VNC + VPN Workspace Environment
+# Auto-generated from devNix.j2 — do not edit manually.
 { pkgs, ... }: {
   channel = "unstable";
 
@@ -24,7 +25,12 @@
     pkgs.python313Packages.websockify
     pkgs.novnc
     pkgs.unzip
+{% if warp == "true" %}
 
+    # WARP VPN
+    pkgs.wgcf
+    pkgs.wireproxy
+{% endif %}
   ];
 
   env = {};
@@ -38,9 +44,11 @@
       onCreate = {
         default.openFiles = [ "README.md" ];
       };
+{% if warp == "true" %}
       onStart = {
-        startWarp = "if [ -f .warp-enabled ]; then ./scripts/start-warp.sh start; fi";
+        startWarp = "./scripts/start-warp.sh start";
       };
+{% endif %}
     };
 
     previews = {
