@@ -15,6 +15,12 @@
       "default": "web"
     },
     {
+      "id": "camoufox",
+      "name": "Enable Camoufox (anti-detect browser)",
+      "type": "boolean",
+      "default": "true"
+    },
+    {
       "id": "warp",
       "name": "Enable WARP VPN",
       "type": "boolean",

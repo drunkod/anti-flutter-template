@@ -6,6 +6,7 @@
 , template ? "app"
 , blank ? false
 , platforms ? "web"
+, camoufox ? true
 , warp ? false
 , ...
 }:
@@ -16,8 +17,8 @@ let
     config.allowUnfree = true;
   };
 
-  # Build Camoufox from the shared package definition
-  camoufox = import ./camoufox/package.nix { inherit pkgs; };
+  # Build Camoufox from the shared package definition (only when enabled)
+  camoufoxPkg = if camoufox then import ./camoufox/package.nix { inherit pkgs; } else null;
 in
 {
   channel = "unstable";
@@ -46,18 +47,22 @@ in
     # 3. Copy flake.nix (stays at repo root, deployed separately)
     install -m 644 ${./flake.nix} "$out"/flake.nix
 
-    # 4. Copy camoufox files
-    mkdir -p "$out"/camoufox
-    install -m 644 ${./camoufox/flake.nix} "$out"/camoufox/flake.nix
-    install -m 644 ${./camoufox/README.md} "$out"/camoufox/README.md
-    install -m 755 ${./camoufox/browser-1.sh} "$out"/camoufox/browser-1.sh
-    install -m 755 ${./camoufox/browser-2.sh} "$out"/camoufox/browser-2.sh
+    # 4. Copy camoufox files (only when enabled)
+    ${if camoufox then ''
+      mkdir -p "$out"/camoufox
+      install -m 644 ${./camoufox/flake.nix} "$out"/camoufox/flake.nix
+      install -m 644 ${./camoufox/README.md} "$out"/camoufox/README.md
+      install -m 755 ${./camoufox/browser-1.sh} "$out"/camoufox/browser-1.sh
+      install -m 755 ${./camoufox/browser-2.sh} "$out"/camoufox/browser-2.sh
+    '' else ""}
 
     # 5. Link binaries into $out/bin
     mkdir -p "$out"/bin
     ln -sf ${pkgs.chromium}/bin/chromium "$out"/bin/chromium
-    ln -sf ${camoufox}/bin/camoufox "$out"/bin/camoufox
-    ln -sf ${camoufox}/bin/camoufox-bin "$out"/bin/camoufox-bin
+    ${if camoufox then ''
+      ln -sf ${camoufoxPkg}/bin/camoufox "$out"/bin/camoufox
+      ln -sf ${camoufoxPkg}/bin/camoufox-bin "$out"/bin/camoufox-bin
+    '' else ""}
     ln -sf ${pkgsUnfree.antigravity}/bin/antigravity "$out"/bin/antigravity
 
     # 6. WARP VPN binaries (only when warp is enabled)
