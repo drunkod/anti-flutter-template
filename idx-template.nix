@@ -28,25 +28,7 @@ in
     pkgs.xz
     pkgs.git
     pkgs.busybox
-    # pkgs.tigervnc
-    # pkgs.fluxbox
-    # pkgs.python313Packages.websockify
-    # pkgs.novnc
 
-    # # Desktop environment
-    # pkgs.dbus
-    # pkgs.xterm
-    # pkgs.xdotool
-    # pkgs.xorg.xrdb
-
-    # Browser dependencies
-    pkgs.chromium
-
-    pkgsUnfree.antigravity
-
-    # Template rendering
-    pkgs.j2cli
-    pkgs.nixfmt
   ];
 
   bootstrap = ''
@@ -87,7 +69,7 @@ in
     # 7. Generate dev.nix from Jinja2 template (conditionally includes WARP packages/hooks)
     mkdir -p "$out"/.idx
     warp=${if warp then "true" else "false"} ${pkgs.j2cli}/bin/j2 ${./devNix.j2} -o "$out"/.idx/dev.nix
-    ${pkgs.nixfmt-classic}/bin/nixfmt "$out"/.idx/dev.nix
+    ${pkgs.nixfmt}/bin/nixfmt "$out"/.idx/dev.nix
 
     # 8. WARP setup: register account and generate wireproxy config
     ${if warp then ''
