@@ -45,8 +45,6 @@ in
 
     pkgsUnfree.antigravity
 
-
-    ${if warp == false then "" else "pkgs.wgcf\n pkgs.wireproxy"}
     # Template rendering
     pkgs.j2cli
     pkgs.nixfmt
