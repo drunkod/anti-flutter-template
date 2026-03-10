@@ -25,9 +25,6 @@
     pkgs.novnc
     pkgs.unzip
 
-    # WARP VPN
-    pkgs.wgcf
-    pkgs.wireproxy
   ];
 
   env = {};
